@@ -1,7 +1,16 @@
-import React, { PropTypes } from 'react';
-import { Table, Popconfirm, Button } from 'antd';
+import React, {
+  PropTypes
+} from 'react';
+import {
+  Table,
+  Popconfirm,
+  Button
+} from 'antd';
 
-const { Column, ColumnGroup } = Table
+const {
+  Column,
+  ColumnGroup
+} = Table
 
 const data = [{
   key: '1',
@@ -62,5 +71,4 @@ ReactDOM.render(
         </span>
       )}
     />
-  </Table>
-, mountNode);
+  </Table>, mountNode);
