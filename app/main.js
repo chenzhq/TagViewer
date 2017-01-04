@@ -7,7 +7,8 @@ const {
 } = require('electron')
     // Module to control application life.
 const {
-    readdir
+    readdir,
+    stat
 } = require('fs')
     // const app = electron.app
     // Module to create native browser window.
@@ -15,6 +16,8 @@ const {
 
 const path = require('path')
 const url = require('url')
+
+const isVideo = require('is-video')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -74,9 +77,57 @@ ipcMain.on('open-file-dialog', function(event) {
     dialog.showOpenDialog({
         properties: ['openDirectory']
     }, function(dir) {
-        if (dir) event.sender.send('selected-directory', dir)
+        if (dir) {
+            //打开文件夹发送通知
+            event.sender.send('selected-directory', dir)
+
+            //
+            getVideos(dir[0], videoList, function())
+            readdir(dir[0], function(err, files) {
+                if (err) throw err;
+                event.sender.send('finish-read', files)
+            })
+        }
     })
 })
+
+function getVideos(path, videos, callback) {
+    readdir(path, function(err, files) {
+        if (err) throw err;
+        files.forEach((file) => {
+            stat(path + '/' + file, (err, stat) => {
+                if (err) throw err
+                if (stat.isDirectory) {
+                    getVideos(path + '/' + file, videos)
+                } else if (isVideo(file)) {
+                    videos.push({
+                        "_id": new Date().toISOString(),
+                        "name": file,
+                        "size": stat.size,
+                        "path": path + '/' + file,
+                        "times": 0
+                    })
+                }
+            })
+        })
+        callback()
+    })
+
+    // fs.readdirSync(path).forEach((file) => {
+    //     let stat = fs.statSync(path + '/' + file)
+    //     if (stat.isDirectory) {
+    //         getVideos(path + '/' + file, videos)
+    //     } else if (isVideo(file)) {
+    //         videos.push({
+    //             "_id": new Date().toISOString(),
+    //             "name": file,
+    //             "size": stat.size,
+    //             "path": path + '/' + file,
+    //             "times": 0
+    //         })
+    //     }
+    // })
+}
 
 ipcMain.on('read-files', function(event, dir) {
     readdir(dir[0], function(err, files) {

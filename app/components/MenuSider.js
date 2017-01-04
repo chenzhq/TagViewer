@@ -14,7 +14,6 @@ const {
 	ipcRenderer
 } = require('electron')
 
-// const fs = require('fs')
 
 class MenuSider extends React.Component {
 	constructor(props) {
@@ -28,11 +27,12 @@ class MenuSider extends React.Component {
 			ipcRenderer.send('open-file-dialog')
 		}
 
+		//打开文件夹后，等待处理
 		ipcRenderer.on('selected-directory', function(event, path) {
 			console.log(`You selected: ${path}`)
-			ipcRenderer.send('read-files', path)
 		})
 
+		//读取文件完毕
 		ipcRenderer.on('finish-read', function(event, files) {
 			console.log(`子文件有${files}`)
 		})
