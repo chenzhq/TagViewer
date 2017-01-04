@@ -1,4 +1,3 @@
-
 import path from 'path'
 import validate from 'webpack-validator'
 
@@ -8,6 +7,9 @@ export default validate({
 			test: /\.jsx?$/,
 			loaders: ['babel-loader'],
 			exclude: /node_modules/
+		}, {
+			test: /\.json$/,
+			loader: 'json-loader'
 		}]
 	},
 
@@ -19,11 +21,11 @@ export default validate({
 	},
 
 	resolve: {
-		extensions: ['', '.js', '.jsx'],
+		extensions: ['', '.js', '.jsx', '.json'],
 		packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main']
 	},
 
 	plugins: [],
 
-	
+
 })
