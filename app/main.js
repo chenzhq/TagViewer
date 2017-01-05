@@ -18,6 +18,7 @@ const path = require('path')
 const url = require('url')
 
 const isVideo = require('is-video')
+const async = require('async')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -26,8 +27,9 @@ let mainWindow
 function createWindow() {
     // Create the browser window.
     mainWindow = new BrowserWindow({
-        width: 800,
-        height: 600
+        width: 1080,
+        height: 670,
+        resizable: false
     })
 
     // and load the index.html of the app.
@@ -81,53 +83,45 @@ ipcMain.on('open-file-dialog', function(event) {
             //打开文件夹发送通知
             event.sender.send('selected-directory', dir)
 
+            const videoList = []
+
             //
-            getVideos(dir[0], videoList, function())
-            readdir(dir[0], function(err, files) {
-                if (err) throw err;
-                event.sender.send('finish-read', files)
-            })
+            getVideos(dir[0], videoList, event)
+
         }
     })
 })
 
-function getVideos(path, videos, callback) {
-    readdir(path, function(err, files) {
-        if (err) throw err;
-        files.forEach((file) => {
-            stat(path + '/' + file, (err, stat) => {
-                if (err) throw err
-                if (stat.isDirectory) {
-                    getVideos(path + '/' + file, videos)
-                } else if (isVideo(file)) {
-                    videos.push({
-                        "_id": new Date().toISOString(),
-                        "name": file,
-                        "size": stat.size,
-                        "path": path + '/' + file,
-                        "times": 0
-                    })
-                }
-            })
-        })
-        callback()
-    })
 
-    // fs.readdirSync(path).forEach((file) => {
-    //     let stat = fs.statSync(path + '/' + file)
-    //     if (stat.isDirectory) {
-    //         getVideos(path + '/' + file, videos)
-    //     } else if (isVideo(file)) {
-    //         videos.push({
-    //             "_id": new Date().toISOString(),
-    //             "name": file,
-    //             "size": stat.size,
-    //             "path": path + '/' + file,
-    //             "times": 0
-    //         })
-    //     }
-    // })
+function getVideos(_path, videoList, event) {
+    readdir(_path, function(err, fileList) {
+        async.each(fileList,
+            function(file, cb) {
+                let filePath = path.join(_path, file)
+                stat(filePath, function(err, stats) {
+                    if (isVideo(file)) {
+                        let video = {
+                            "_id": filePath,
+                            "name": file,
+                            "size": stats.size,
+                            // "path": filePath,
+                            "times": 0
+                        }
+                        videoList.push(video)
+                        event.sender.send("onefile-get", video)
+                    } else if (stats.isDirectory()) {
+                        // event.sender.send('onefile-get', filePath)
+                        getVideos(filePath, videoList, event)
+                    }
+                })
+            },
+            function(err) {
+
+            })
+    })
 }
+
+
 
 ipcMain.on('read-files', function(event, dir) {
     readdir(dir[0], function(err, files) {

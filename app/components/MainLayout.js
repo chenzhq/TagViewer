@@ -13,6 +13,7 @@ const {
 require('../styles/MainLayout.css')
 
 import MenuSider from './MenuSider'
+import ContentTable from './ContentTable'
 
 const PouchDB = require('pouchdb/dist/pouchdb.min')
 
@@ -33,7 +34,7 @@ class MainLayout extends React.Component {
 
 	render() {
 		return (
-			<Layout>
+			<Layout className="layout">
 				<MenuSider collapsed={this.state.collapsed}/>
 				<Layout>
 					<Header style={{ background: '#fff', padding: 0 }}>
@@ -43,8 +44,8 @@ class MainLayout extends React.Component {
 			              onClick={this.toggle}
 			            />
 	          		</Header>
-					<Content style={{ margin: '24px 16px', padding: 24, background: '#fff', minHeight: 280 }}>
-					Content
+					<Content style={{ margin: '20px 12px', padding: 20, background: '#fff', minHeight: 470 }}>
+						<ContentTable />
 					</Content>
 				</Layout>
 			</Layout>

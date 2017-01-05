@@ -18,7 +18,8 @@ const {
 class MenuSider extends React.Component {
 	constructor(props) {
 		super(props)
-			//利用ipc打开对话框
+
+		//利用ipc打开对话框
 		this.handleMenuClick = (item, key, keypath) => {
 			// if()
 			console.log(item)
@@ -35,6 +36,14 @@ class MenuSider extends React.Component {
 		//读取文件完毕
 		ipcRenderer.on('finish-read', function(event, files) {
 			console.log(`子文件有${files}`)
+		})
+
+		// ipcRenderer.on('onefile-get', (event, file) => {
+		// 	console.log(file)
+		// })
+
+		ipcRenderer.on('allfile-get', (event) => {
+			console.log("全部获取完毕")
 		})
 	}
 
