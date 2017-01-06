@@ -54,7 +54,7 @@ function createWindow() {
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow)
+app.on('ready', createWindow);
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function() {
@@ -97,7 +97,7 @@ function getVideos(_path, videoList, event) {
     readdir(_path, function(err, fileList) {
         async.each(fileList,
             function(file, cb) {
-                let filePath = path.join(_path, file)
+                let filePath = path.join(_path, file);
                 stat(filePath, function(err, stats) {
                     if (isVideo(file)) {
                         let video = {
@@ -106,8 +106,8 @@ function getVideos(_path, videoList, event) {
                             "size": stats.size,
                             // "path": filePath,
                             "times": 0
-                        }
-                        videoList.push(video)
+                        };
+                        videoList.push(video);
                         event.sender.send("onefile-get", video)
                     } else if (stats.isDirectory()) {
                         // event.sender.send('onefile-get', filePath)
@@ -116,7 +116,7 @@ function getVideos(_path, videoList, event) {
                 })
             },
             function(err) {
-
+              event.sender.send("allfile-get")
             })
     })
 }

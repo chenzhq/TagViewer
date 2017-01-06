@@ -10,7 +10,7 @@ import {
 const {
   Column,
   ColumnGroup
-} = Table
+} = Table;
 
 const data = [{
   key: '1',
