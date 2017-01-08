@@ -31,10 +31,6 @@ class MenuSider extends React.Component {
       }
 		};
 
-		//打开文件夹后，等待处理
-		ipcRenderer.on('selected-directory', function(event, path) {
-			console.log(`You selected: ${path}`);
-		});
 
 		//读取文件完毕
 		ipcRenderer.on('finish-read', function(event, files) {
@@ -45,9 +41,9 @@ class MenuSider extends React.Component {
 		// 	console.log(file)
 		// })
 
-		ipcRenderer.on('allfile-get', (event) => {
-			console.log("全部获取完毕");
-		})
+
+
+
 	}
 
 	render() {

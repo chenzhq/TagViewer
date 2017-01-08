@@ -2,13 +2,17 @@ import React from 'react'
 import {
 	Layout,
 	Menu,
-	Icon
+	Icon,
+	Spin
 } from 'antd'
 const {
 	Header,
 	Sider,
 	Content
 } = Layout;
+const {
+	ipcRenderer
+} = require('electron');
 
 require('../styles/MainLayout.css');
 
@@ -21,7 +25,9 @@ class MainLayout extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			collapsed: false
+			collapsed: false,
+			loading: false,
+			loadingTip: '正在加载'
 		};
 
 		this.toggle = () => {
@@ -29,6 +35,8 @@ class MainLayout extends React.Component {
 				collapsed: !this.state.collapsed,
 			})
 		}
+
+
 	}
 
   componentWillMount() {
@@ -38,7 +46,7 @@ class MainLayout extends React.Component {
 	render() {
 		return (
 			<Layout className="layout">
-				<MenuSider collapsed={this.state.collapsed}/>
+				<MenuSider collapsed={this.state.collapsed} />
 				<Layout>
 					<Header style={{ background: '#fff', padding: 0 }}>
             <Icon
@@ -48,7 +56,7 @@ class MainLayout extends React.Component {
             />
           </Header>
 					<Content style={{ margin: '20px 12px', padding: 20, background: '#fff', minHeight: 470 }}>
-						<ContentTable />
+							<ContentTable />
 					</Content>
 				</Layout>
 			</Layout>

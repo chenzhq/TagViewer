@@ -1,33 +1,64 @@
 /**
- * Created by chen on 2017/1/6.
+ * Created by chen on 2017/01/06.
  */
+const {readdir, stat} = require("fs");
+const path = require("path");
 
-const isVideo = require('is-video');
-const async = require('async');
-const path = require('path');
-const {
-  readdir,
-  stat
-} = require('fs')
+function readdirRecur(_path, event, callback) {
+	'use strict';
+	let list = [];
 
-const dirList = [];
+	readdir(_path, function(err, files) {
+		if (err) {
+			return callback(err);
+		}
 
-function isDir(path) {
-  "use strict";
-  let dirLength;
-  readdir(path, function(err, files) {
-    dirLength = files.length;
-    async.each(files, function(file, cb) {
-      let filePath = path.join(path, file);
-      stat(filePath, function (err, stats) {
-        //如果是文件夹，加入dirList，递归查询
-        if(stats.isDirectory()) {
-          dirList.push(filePath);
-          isDir(filePath);
-        }
-      })
-    }, function(err) {
+		let pending = files.length;
+		if (!pending) {
+			// we are done, woop woop
+			return callback(null, list);
+		}
 
-    })
-  });
+		files.forEach(function(file) {
+			let filePath = path.join(_path, file);
+			stat(filePath, function(_err, stats) {
+				if (_err) {
+					return callback(_err);
+				}
+
+				if (stats.isDirectory()) {
+					readdirRecur(filePath, event, function(__err, res) {
+						if (__err) {
+							return callback(__err);
+						}
+
+						list = list.concat(res);
+						pending -= 1;
+
+						event.sender.send('onedir-get', filePath);
+						if (!pending) {
+							return callback(null, list);
+						}
+					});
+				} else {
+					let video = {
+						"_id": filePath,
+						"name": file,
+						"size": stats.size,
+						// "path": filePath,
+						"times": 0
+					};
+					list.push(video);
+					pending -= 1;
+					event.sender.send('onefile-get', filePath);
+					if (!pending) {
+						return callback(null, list);
+					}
+				}
+
+			});
+		});
+	});
 }
+
+module.exports = readdirRecur;

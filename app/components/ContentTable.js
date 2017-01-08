@@ -9,7 +9,7 @@ import {
 import PouchDB from 'pouchdb/dist/pouchdb.min';
 
 const {
-	Column,
+  Column,
 	ColumnGroup
 } = Table;
 
@@ -22,7 +22,8 @@ class ContentTable extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			content: []
+			content: [],
+			loading: false
 		};
 
 		this.handleNameClick = function(path) {
@@ -30,7 +31,7 @@ class ContentTable extends React.Component {
       shell.openItem(path);
 		};
 
-		ipcRenderer.on('onefile-get', (event, file) => {
+		ipcRenderer.on('onefile-getxxx', (event, file) => {
 			let content = this.state.content;
       // videoDB
 			this.setState({
@@ -38,9 +39,31 @@ class ContentTable extends React.Component {
 			})
 		})
 
-    ipcRenderer.on('allfile-get', (event) => {
-      console.log('所有文件完毕')
-    })
+		//打开文件夹后，等待处理
+		ipcRenderer.on('selected-directory', (function(event, path) {
+			this.setState({
+				loading: true,
+			});
+			//发送ipc 开始读取路径下的文件
+			event.sender.send('readdir', path[0]);
+		}).bind(this));
+
+		ipcRenderer.on('allfiles-get', (function (event, files) {
+			let videoDB = new PouchDB('videos');
+			videoDB.bulkDocs(files).catch((err) => {
+				if(err.name === 'conflict') {
+					console.log('文件已存在', err);
+				}
+			}).then(result => {
+				console.log('存储成功');
+				this.setState({
+					content: result,
+					loading: false
+				});
+			});
+
+			// console.log('加载完成')
+		}).bind(this))
 	}
 
 	componentWillMount() {
@@ -59,6 +82,7 @@ class ContentTable extends React.Component {
         pagination={{pageSize: 50}}
 				scroll={{ y: 340 }}
 				bordered
+				loading={true}
 				size="middle">
 				<Column
 					title="名称"

@@ -20,6 +20,8 @@ const url = require('url')
 const isVideo = require('is-video')
 const async = require('async')
 
+const readdirRecur = require('./utils/RecurFile')
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
@@ -81,17 +83,17 @@ ipcMain.on('open-file-dialog', function(event) {
     }, function(dir) {
         if (dir) {
             //打开文件夹发送通知
-            event.sender.send('selected-directory', dir)
-
-            const videoList = []
-
-            //
-            getVideos(dir[0], videoList, event)
-
+            event.sender.send('selected-directory', dir);
         }
     })
 })
 
+ipcMain.on('readdir', function(event, path) {
+	"use strict";
+	readdirRecur(path, event, function(err, files) {
+		event.sender.send('allfiles-get', files);
+	})
+})
 
 function getVideos(_path, videoList, event) {
     readdir(_path, function(err, fileList) {
@@ -120,6 +122,7 @@ function getVideos(_path, videoList, event) {
             })
     })
 }
+
 
 
 
