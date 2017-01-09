@@ -26,24 +26,10 @@ class MenuSider extends React.Component {
 			if(item.key === '1') {
         ipcRenderer.send('open-file-dialog');
       } else if(item.key === '2') {
-			  const test = new PouchDB('test');
-			  test.destroy().catch((err) => console.log(err));
+			  const videoDB = new PouchDB('videos');
+				videoDB.destroy().catch((err) => console.log(err));
       }
 		};
-
-
-		//读取文件完毕
-		ipcRenderer.on('finish-read', function(event, files) {
-			console.log(`子文件有${files}`);
-		});
-
-		// ipcRenderer.on('onefile-get', (event, file) => {
-		// 	console.log(file)
-		// })
-
-
-
-
 	}
 
 	render() {

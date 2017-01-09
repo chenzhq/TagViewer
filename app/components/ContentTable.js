@@ -18,13 +18,12 @@ const {
 	shell
 } = require('electron');
 
+const {Map, List} = require('immutable');
+
 class ContentTable extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			content: [],
-			loading: false
-		};
+		this.state = {data: Map({content: List(), loading: false})};
 
 		this.handleNameClick = function(path) {
 			event.preventDefault();
@@ -41,25 +40,28 @@ class ContentTable extends React.Component {
 
 		//打开文件夹后，等待处理
 		ipcRenderer.on('selected-directory', (function(event, path) {
-			this.setState({
-				loading: true,
-			});
+			//等待遍历
+			this.setState(({data}) => ({
+				data: data.update('loading', () => true)
+			}));
 			//发送ipc 开始读取路径下的文件
 			event.sender.send('readdir', path[0]);
 		}).bind(this));
 
 		ipcRenderer.on('allfiles-get', (function (event, files) {
 			let videoDB = new PouchDB('videos');
-			videoDB.bulkDocs(files).catch((err) => {
-				if(err.name === 'conflict') {
-					console.log('文件已存在', err);
-				}
-			}).then(result => {
-				console.log('存储成功');
-				this.setState({
-					content: result,
-					loading: false
-				});
+			videoDB.bulkDocs(files).then(result => {
+				console.log('存储成功', files);
+				// Map({'content': reslut, 'loading': false});
+				let oldState = this.state.data;
+				this.setState(({data}) => ({
+					data: data.update(map => {
+						return map.merge(Map({'content': List(files), 'loading': false}))
+					})
+				}));
+				console.log(this.state.data.get('content').toArray());
+			}).catch((err) => {
+				console.log(err)
 			});
 
 			// console.log('加载完成')
@@ -77,12 +79,12 @@ class ContentTable extends React.Component {
 	render() {
 		return (
 			<Table
-				dataSource={this.state.content}
-				rowKey="_id"
+				dataSource={this.state.data.get('content').toArray()}
+				rowKey={record => record._id}
         pagination={{pageSize: 50}}
 				scroll={{ y: 340 }}
 				bordered
-				loading={true}
+				loading={this.state.data.get('loading')}
 				size="middle">
 				<Column
 					title="名称"

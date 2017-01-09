@@ -44,7 +44,7 @@ function readdirRecur(_path, event, callback) {
 					let video = {
 						"_id": filePath,
 						"name": file,
-						"size": stats.size,
+						"size": (stats.size/1024/1024).toFixed(2)+'M',
 						// "path": filePath,
 						"times": 0
 					};
