@@ -4,9 +4,11 @@ import React, {
 import {
 	Table,
 	Popconfirm,
-	Button
+	Button,
+	Tag
 } from 'antd'
 import PouchDB from 'pouchdb/dist/pouchdb.min';
+PouchDB.plugin(require('pouchdb-find'));
 
 const {
   Column,
@@ -23,20 +25,18 @@ const {Map, List} = require('immutable');
 class ContentTable extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {data: Map({content: List(), loading: false})};
+		this.state = {
+			data: Map({
+				content: List(),
+				loading: true
+			}),
+		};
 
 		this.handleNameClick = function(path) {
 			event.preventDefault();
       shell.openItem(path);
 		};
 
-		ipcRenderer.on('onefile-getxxx', (event, file) => {
-			let content = this.state.content;
-      // videoDB
-			this.setState({
-				content: content.concat(file)
-			})
-		})
 
 		//打开文件夹后，等待处理
 		ipcRenderer.on('selected-directory', (function(event, path) {
@@ -51,29 +51,45 @@ class ContentTable extends React.Component {
 		ipcRenderer.on('allfiles-get', (function (event, files) {
 			let videoDB = new PouchDB('videos');
 			videoDB.bulkDocs(files).then(result => {
-				console.log('存储成功', files);
-				// Map({'content': reslut, 'loading': false});
 				let oldState = this.state.data;
 				this.setState(({data}) => ({
 					data: data.update(map => {
 						return map.merge(Map({'content': List(files), 'loading': false}))
 					})
 				}));
-				console.log(this.state.data.get('content').toArray());
 			}).catch((err) => {
 				console.log(err)
 			});
-
-			// console.log('加载完成')
 		}).bind(this))
 	}
 
 	componentWillMount() {
-	  const videoDB = new PouchDB('videos');
+		const videoDB = new PouchDB('videos');
+		videoDB.createIndex({
+			index: {
+				fields: ['times']
+			}
+		}).catch(err => console.err('索引创建失败', err));
   }
 
 	componentDidMount() {
+		const videoDB = new PouchDB('videos');
 
+		videoDB.find({
+			selector: {
+				times: {'$gte': 0},
+			}
+		}).then(res => {
+			console.log('查询成功', res);
+			this.setState({
+				data: Map({
+					content: List(res.docs),
+					loading: false
+				})
+			})
+		}).catch(err => {
+			console.log('查询失败', err);
+		})
   }
 
 	render() {
@@ -110,9 +126,24 @@ class ContentTable extends React.Component {
 				/>
 				<Column
 					title="标签"
-					dataIndex="tags"
 					key="tags"
 					width={200}
+					render={(text, record) => (
+						<div>
+							{record.tags.map((tag, index) => {
+								const isLongTag = tag.length > 10;
+								const tagElem = (
+									<Tag
+										key={tag}>
+										{isLongTag ? `${tag.slice(0, 10)}...` : tag}
+									</Tag>
+								);
+								return isLongTag ? <Tooltip title={tag}>{tagElem}</Tooltip> : tagElem;
+							})}
+
+						</div>
+					)
+					}
 				/>
 				<Column
 					title="观看次数"

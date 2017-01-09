@@ -45,7 +45,7 @@ function readdirRecur(_path, event, callback) {
 						"_id": filePath,
 						"name": file,
 						"size": (stats.size/1024/1024).toFixed(2)+'M',
-						// "path": filePath,
+						"tags": ["tag1", "tag2"],
 						"times": 0
 					};
 					list.push(video);
