@@ -61,6 +61,7 @@
   "dependencies": {
     "antd": "^2.6.0",
     "async": "^2.1.4",
+    "immutability-helper": "^2.1.1",
     "immutable": "^3.8.1",
     "is-video": "^1.0.1",
     "pouchdb": "^6.1.0",

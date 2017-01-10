@@ -14,25 +14,28 @@ const {
 	ipcRenderer
 } = require('electron');
 
+import update from 'immutability-helper';
+
 require('../styles/MainLayout.css');
 
 import MenuSider from './MenuSider'
 import ContentTable from './ContentTable'
+import  AddTagModal from './AddTagModal'
 
 const PouchDB = require('pouchdb/dist/pouchdb.min');
+PouchDB.plugin(require('pouchdb-find'));
 
 class MainLayout extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
 			collapsed: false,
-			loading: false,
-			loadingTip: '正在加载'
+			tags: []
 		};
 
 		this.toggle = () => {
 			this.setState({
-				collapsed: !this.state.collapsed,
+				collapsed: !this.state.collapsed
 			})
 		}
 
@@ -40,7 +43,16 @@ class MainLayout extends React.Component {
 	}
 
   componentWillMount() {
-	  const videoDB = new PouchDB('videos');
+		let tagDB = new PouchDB('tags');
+
+		tagDB.find({
+			selector: {
+				count: {'$gte': 0}
+			}
+		}).then(res => {
+			let oldState = this.state;
+			this.setState(update(oldState, {tags: {$set: res.docs}}))
+		}).catch(err => console.log(err));
   }
 
 	render() {
@@ -56,7 +68,7 @@ class MainLayout extends React.Component {
             />
           </Header>
 					<Content style={{ margin: '20px 12px', padding: 20, background: '#fff', minHeight: 470 }}>
-							<ContentTable />
+							<ContentTable tags={this.state.tags}/>
 					</Content>
 				</Layout>
 			</Layout>
