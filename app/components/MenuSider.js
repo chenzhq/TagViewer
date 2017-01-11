@@ -19,15 +19,17 @@ const PouchDB = require('pouchdb/dist/pouchdb.min');
 
 class MenuSider extends React.Component {
 	constructor(props) {
-		super(props);
+		const videoDB = new PouchDB('videos');
+		const tagDB = new PouchDB('tags');
 
 		//利用ipc打开对话框
+		super(props);
 		this.handleMenuClick = (item) => {
 			if(item.key === '1') {
-        ipcRenderer.send('open-file-dialog');
-      } else if(item.key === '2') {
-			  const videoDB = new PouchDB('videos');
+				ipcRenderer.send('open-file-dialog');
+			} else if(item.key === '2') {
 				videoDB.destroy().catch((err) => console.log(err));
+				tagDB.destroy().catch((err) => console.log(err));
       }
 		};
 	}

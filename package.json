@@ -66,6 +66,7 @@
     "is-video": "^1.0.1",
     "pouchdb": "^6.1.0",
     "pouchdb-find": "^0.10.4",
+    "pouchdb-upsert": "^2.0.2",
     "react": "^15.4.1",
     "react-dom": "^15.4.1"
   }

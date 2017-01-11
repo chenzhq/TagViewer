@@ -21,18 +21,16 @@ const {
 	shell
 } = require('electron');
 
-const {Map, List} = require('immutable');
 
 class ContentTable extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			data: Map({
-				content: List(),
-				loading: true
-			}),
+			data: [],
+			loading: true,
 			modalVisible: false,
-			selectedItem: {}
+			selectedItem: {},
+			allTags: []
 		};
 
 		this.handleNameClick = function(path) {
@@ -50,25 +48,66 @@ class ContentTable extends React.Component {
 
 		}
 
+		//传给Modal的回调函数，修改state.data.item.tags
+		this.updateItem = (function (item) {
+
+			let testarr = [{a: 'a', b: 'b'},{c: 'c', d: 'd'}];
+			let num = 1;
+			console.log(update(testarr, {num: {c: {$set: 'cc'}}}))
+
+
+			console.log(item.tags)
+			let _data = this.state.data;
+			let changeOne = 0;
+			let modifiedData;
+			console.log(_data)
+			for(let i = 0, l = _data.length; i < l; i++) {
+				if(_data[i]._id === item._id) {
+					changeOne = i;
+					console.log(_data[i].tags);
+					console.log(item.tags);
+					modifiedData = update(_data, {
+						i: {
+							tags: {$splice: [[0, _data[i].tags.length, item.tags]]}
+						}
+					});
+					this.setState(update(_data, modifiedData));
+					break;
+				}
+			}
+			console.log(modifiedData)
+
+			// this.setState(update(_data, {}));
+			// this.setState(update(this.state, {
+			// 	data: {
+			// 		changeOne: {
+			// 			tags: {$set: item.tags}
+			// 		}
+			// 	}
+			// }));
+
+		}).bind(this);
+
 		//打开文件夹后，等待处理
 		ipcRenderer.on('selected-directory', (function(event, path) {
 			//等待遍历
-			this.setState(({data}) => ({
-				data: data.update('loading', () => true)
-			}));
+			this.setState(update(this.state, {loading: {$set: true}}));
 			//发送ipc 开始读取路径下的文件
 			event.sender.send('readdir', path[0]);
 		}).bind(this));
 
 		ipcRenderer.on('allfiles-get', (function (event, files) {
 			let videoDB = new PouchDB('videos');
-			videoDB.bulkDocs(files).then(result => {
-				let oldState = this.state.data;
-				this.setState(({data}) => ({
-					data: data.update(map => {
-						return map.merge(Map({'content': List(files), 'loading': false}))
-					})
-				}));
+			videoDB.bulkDocs(files).then(results => {
+				//The results are returned in the same order as the supplied “docs” array.
+				for(let l = results.length , i = l-1; i >= 0; --i) {
+					if(results[i].error === true) {
+						files.splice(i, 1);
+					}
+				}
+
+				this.setState(update(this.state, {data: {$push: files}, loading: {$set: false}}));
+
 			}).catch((err) => {
 				console.log(err)
 			});
@@ -76,7 +115,7 @@ class ContentTable extends React.Component {
 	}
 
 	componentWillMount() {
-		const videoDB = new PouchDB('videos');
+		let videoDB = new PouchDB('videos');
 		videoDB.createIndex({
 			index: {
 				fields: ['times']
@@ -85,34 +124,45 @@ class ContentTable extends React.Component {
   }
 
 	componentDidMount() {
-		const videoDB = new PouchDB('videos');
+		let videoDB = new PouchDB('videos');
+		let tagDB = new PouchDB('tags');
 
 		videoDB.find({
 			selector: {
 				times: {'$gte': 0}
 			}
 		}).then(res => {
-			this.setState({
-				data: Map({
-					content: List(res.docs),
-					loading: false
-				})
-			})
+			this.setState(update(this.state, {data: {$set: res.docs}}, {loading: {$set: false}}))
+		}).catch(err => console.error('video查询失败', err))
+
+		tagDB.find({
+			selector: {
+				count: {'$gte': 0}
+			},
+			fields: ['_id']
+		}).then(resTags => {
+			//tag转换成纯字符串数组
+			let tagArr = [];
+			for(let i = 0, len = resTags.docs.length; i < len; ++i) {
+				tagArr.push(resTags.docs[i]._id);
+			}
+			this.setState(update(this.state, {allTags: {$set: tagArr}}, {loading: {$set: false}}))
 		}).catch(err => {
-			console.log('查询失败', err);
-		})
+			console.error('tag查询失败', err);
+		});
+
   }
 
 	render() {
 		return (
 			<section>
 				<Table
-					dataSource={this.state.data.get('content').toArray()}
+					dataSource={this.state.data}
 					rowKey={record => record._id}
 					pagination={{pageSize: 50}}
 					scroll={{ y: 340 }}
 					bordered
-					loading={this.state.data.get('loading')}
+					loading={this.state.loading}
 					size="middle"
 				>
 					<Column
@@ -142,7 +192,7 @@ class ContentTable extends React.Component {
 						width={200}
 						render={(text, record) => (
 							<div>
-								{record.tags.map((tag, index) => {
+								{record.tags.map((tag) => {
 									const isLongTag = tag.length > 10;
 									const tagElem = (
 										<Tag
@@ -175,7 +225,8 @@ class ContentTable extends React.Component {
 				<AddTagModal
 					item={this.state.selectedItem}
 					visible={this.state.modalVisible}
-					tags={['tag1', 'tag2', 'tag3']}
+					allTags={this.state.allTags}
+					updateItem={this.updateItem}
 				/>
 			</section>
 	)

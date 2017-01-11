@@ -43,7 +43,7 @@ class MainLayout extends React.Component {
 	}
 
   componentWillMount() {
-		let tagDB = new PouchDB('tags');
+		let tagDB = new PouchDB('allTags');
 
 		tagDB.find({
 			selector: {
@@ -68,7 +68,7 @@ class MainLayout extends React.Component {
             />
           </Header>
 					<Content style={{ margin: '20px 12px', padding: 20, background: '#fff', minHeight: 470 }}>
-							<ContentTable tags={this.state.tags}/>
+							<ContentTable tags={this.state.allTags}/>
 					</Content>
 				</Layout>
 			</Layout>

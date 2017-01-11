@@ -44,9 +44,9 @@ function readdirRecur(_path, event, callback) {
 					let video = {
 						"_id": filePath,
 						"name": file,
-						"size": (stats.size/1024/1024).toFixed(2)+'M',
-						"tags": ["tag1", "tag2"],
-						"times": 0
+						"size": (stats.size/1024/1024).toFixed(2)+' MB',
+						"tags": [],
+						"times": 1
 					};
 					list.push(video);
 					pending -= 1;
