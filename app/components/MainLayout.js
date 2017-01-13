@@ -67,7 +67,7 @@ class MainLayout extends React.Component {
               onClick={this.toggle}
             />
           </Header>
-					<Content style={{ margin: '20px 12px', padding: 20, background: '#fff', minHeight: 470 }}>
+					<Content style={{ margin: '18px 12px', padding: 20, background: '#fff', minHeight: 470 }}>
 							<ContentTable tags={this.state.allTags}/>
 					</Content>
 				</Layout>
