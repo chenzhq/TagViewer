@@ -1,3 +1,5 @@
+"use strict";
+
 import React from 'react'
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux'
@@ -116,18 +118,16 @@ class MainLayout extends React.Component {
 }
 
 const mapStateToProps = state => {
-	"use strict";
-	const {menuCollapsed} = state;
-	const {loading} = state.tableContent;
+	const {menuCollapsed, tableLoading} = state.ui;
 	return {
-		menuCollapsed: menuCollapsed,
-		tableLoading: loading
+		menuCollapsed,
+		tableLoading
 	}
 
 }
 
 const mapDispatchToProps = (dispatch, ownProps) => {
-	"use strict";
+
 	return {
 		tableLoading: bindActionCreators(filesLoading(ownProps.tableLoading), dispatch)
 	}
