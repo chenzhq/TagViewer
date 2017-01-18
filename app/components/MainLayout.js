@@ -1,18 +1,9 @@
 import React from 'react'
-import {
-	Layout,
-	Menu,
-	Icon,
-	Spin
-} from 'antd'
-const {
-	Header,
-	Sider,
-	Content
-} = Layout;
-const {
-	ipcRenderer
-} = require('electron');
+import {bindActionCreators} from 'redux';
+import {connect} from 'react-redux'
+import {Layout, Icon} from 'antd'
+const {Header, Content} = Layout;
+const {ipcRenderer} = require('electron');
 
 import update from 'immutability-helper';
 
@@ -22,27 +13,71 @@ import MenuSider from './MenuSider'
 import ContentTable from './ContentTable'
 import  AddTagModal from './AddTagModal'
 
+import {collapseMenu, filesLoading, finishLoading, addFiles} from '../actions/actions'
+
 const PouchDB = require('pouchdb/dist/pouchdb.min');
 PouchDB.plugin(require('pouchdb-find'));
 
 class MainLayout extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			collapsed: false,
-			tags: []
-		};
+		const {dispatch, menuCollapsed} = props;
+		//保存一个单独的state，标识菜单是否折叠
+		// this.state = {
+		// 	collapsed: false
+		// };
 
 		this.toggle = () => {
-			this.setState({
-				collapsed: !this.state.collapsed
-			})
+			dispatch(collapseMenu(menuCollapsed));
+			// this.setState({
+			// 	collapsed: !this.state.collapsed
+			// });
 		}
 
+		//点击左侧菜单事件
+		this.handleMenuClick = (item) => {
+			if (item.key === '1') {
+				ipcRenderer.send('open-file-dialog');
+			} else if (item.key === '2') {
+				let videoDB = new PouchDB('videos');
+				let tagDB = new PouchDB('tags');
+				videoDB.destroy().catch((err) => console.log(err));
+				tagDB.destroy().catch((err) => console.log(err));
+			}
+		}
 
+		ipcRenderer.on('selected-directory', function (event, path) {
+			//等待遍历
+			// this.setState(update(this.state, {loading: {$set: true}}));
+			// dispatch(filesLoading());
+
+			dispatch(addFiles(path[0])).then(() =>
+				console.log('done!')
+			)
+			//发送ipc 开始读取路径下的文件
+			event.sender.send('readdir', path[0]);
+		});
+
+		/*ipcRenderer.on('allfiles-get', (function (event, files) {
+		 let videoDB = new PouchDB('videos');
+		 videoDB.bulkDocs(files).then(results => {
+		 //The results are returned in the same order as the supplied “docs” array.
+		 for(let l = results.length , i = l-1; i >= 0; --i) {
+		 if(results[i].error === true) {
+		 files.splice(i, 1);
+		 }
+		 }
+		 dispatch(finishLoading(files));
+		 // this.setState(update(this.state, {data: {$push: files}, loading: {$set: false}}));
+
+		 }).catch((err) => {
+		 console.log(err)
+		 });
+		 }).bind(this))*/
 	}
 
-  componentWillMount() {
+
+	componentWillMount() {
 		let tagDB = new PouchDB('allTags');
 
 		tagDB.find({
@@ -56,15 +91,19 @@ class MainLayout extends React.Component {
   }
 
 	render() {
+		const {menuCollapsed} = this.props;
 		return (
 			<Layout className="layout">
-				<MenuSider collapsed={this.state.collapsed} />
+				<MenuSider
+					collapsed={menuCollapsed}
+					handleMenuClick={this.handleMenuClick}
+				/>
 				<Layout>
 					<Header style={{ background: '#fff', padding: 0 }}>
             <Icon
-              className="trigger"
-              type={this.state.collapsed ? 'menu-unfold' : 'menu-fold'}
-              onClick={this.toggle}
+							className="trigger"
+							type={menuCollapsed ? 'menu-unfold' : 'menu-fold'}
+							onClick={this.toggle}
             />
           </Header>
 					<Content style={{ margin: '18px 12px', padding: 20, background: '#fff', minHeight: 470 }}>
@@ -76,4 +115,23 @@ class MainLayout extends React.Component {
 	}
 }
 
-export default MainLayout
+const mapStateToProps = state => {
+	"use strict";
+	const {menuCollapsed} = state;
+	const {loading} = state.tableContent;
+	return {
+		menuCollapsed: menuCollapsed,
+		tableLoading: loading
+	}
+
+}
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+	"use strict";
+	return {
+		tableLoading: bindActionCreators(filesLoading(ownProps.tableLoading), dispatch)
+	}
+}
+
+
+export default connect(mapStateToProps, mapDispatchToProps)(MainLayout);

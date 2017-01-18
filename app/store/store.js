@@ -9,22 +9,39 @@ import rootReducer from '../reducers/index'
 PouchDB.plugin(require('pouchdb-find'));
 
 const initialState = {
-	files: {
-		data: [],
+	tableContent: {
+		data: {},
+		/*
+		 {
+		 result: [idxxx],
+		 entities: {
+		 "files": {
+		 idxxx: {_id: idxxx, size: 2M, name: xxx, tags:['idyyy'], times: 0},
+		 ...
+		 },
+		 "tags": {
+		 idyyy: {_id: idyyy, count: 1},
+		 ...
+		 }
+		 }
+		 ...
+		 }
+		 */
 		loading: false,
+		tagModalVisible: false,
 		selectedItem: {}
 	},
 	tags: {
-		data: []
+		data: {}
 	},
-	tagModal: {
-		visible: false,
-		item: {}
-	},
+	// tagModal: {
+	// 	visible: false,
+	// 	item: {}
+	// },
 	menuCollapsed: false
 };
 
-let videoDB = new PouchDB('videos');
+/*let videoDB = new PouchDB('videos');
 let tagDB = new PouchDB('tags');
 
 videoDB.find({
@@ -50,7 +67,7 @@ tagDB.find({
 	this.setState(update(this.state, {allTags: {$set: tagArr}}, {loading: {$set: false}}))
 }).catch(err => {
 	console.error('tag查询失败', err);
-});
+ });*/
 
 export default function configureStore() {
 	const store = createStore(rootReducer, initialState, applyMiddleware(thunk, createLogger));

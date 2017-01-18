@@ -4,7 +4,7 @@
 const {readdir, stat} = require("fs");
 const path = require("path");
 
-function readdirRecur(_path, event, callback) {
+function readdirRecur(_path, callback) {
 	'use strict';
 	let list = [];
 
@@ -27,7 +27,7 @@ function readdirRecur(_path, event, callback) {
 				}
 
 				if (stats.isDirectory()) {
-					readdirRecur(filePath, event, function(__err, res) {
+					readdirRecur(filePath, function (__err, res) {
 						if (__err) {
 							return callback(__err);
 						}
@@ -35,7 +35,7 @@ function readdirRecur(_path, event, callback) {
 						list = list.concat(res);
 						pending -= 1;
 
-						event.sender.send('onedir-get', filePath);
+						// event.sender.send('onedir-get', filePath);
 						if (!pending) {
 							return callback(null, list);
 						}
@@ -50,7 +50,7 @@ function readdirRecur(_path, event, callback) {
 					};
 					list.push(video);
 					pending -= 1;
-					event.sender.send('onefile-get', filePath);
+					// event.sender.send('onefile-get', filePath);
 					if (!pending) {
 						return callback(null, list);
 					}

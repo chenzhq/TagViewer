@@ -2,6 +2,7 @@ import 'babel-polyfill';
 import React, {
 	PropTypes
 } from 'react'
+import {connect} from 'react-redux';
 import {
 	Table,
 	Button,
@@ -54,14 +55,14 @@ class ContentTable extends React.Component {
 
 			let testarr = [{a: 'a', b: 'b'},{c: 'c', d: 'd'}];
 			let num = 1;
-			console.log(update(testarr, {num: {c: {$set: 'cc'}}}))
+			console.log(update(testarr, {num: {c: {$set: 'cc'}}}));
 
 
-			console.log(item.tags)
+			console.log(item.tags);
 			let _data = this.state.data;
 			let changeOne = 0;
 			let modifiedData;
-			console.log(_data)
+			console.log(_data);
 			for(let i = 0, l = _data.length; i < l; i++) {
 				if(_data[i]._id === item._id) {
 					changeOne = i;
@@ -76,7 +77,7 @@ class ContentTable extends React.Component {
 					break;
 				}
 			}
-			console.log(modifiedData)
+			console.log(modifiedData);
 
 			// this.setState(update(_data, {}));
 			// this.setState(update(this.state, {
@@ -89,15 +90,15 @@ class ContentTable extends React.Component {
 
 		}).bind(this);
 
-		//打开文件夹后，等待处理
+		/*		//打开文件夹后，等待处理
 		ipcRenderer.on('selected-directory', (function(event, path) {
 			//等待遍历
 			this.setState(update(this.state, {loading: {$set: true}}));
 			//发送ipc 开始读取路径下的文件
 			event.sender.send('readdir', path[0]);
-		}).bind(this));
+		 }).bind(this));*/
 
-		ipcRenderer.on('allfiles-get', (function (event, files) {
+		/*	ipcRenderer.on('allfiles-get', (function (event, files) {
 			let videoDB = new PouchDB('videos');
 			videoDB.bulkDocs(files).then(results => {
 				//The results are returned in the same order as the supplied “docs” array.
@@ -112,7 +113,7 @@ class ContentTable extends React.Component {
 			}).catch((err) => {
 				console.log(err)
 			});
-		}).bind(this))
+		 }).bind(this))*/
 	}
 
 	componentWillMount() {
@@ -155,15 +156,16 @@ class ContentTable extends React.Component {
   }
 
 	render() {
+		const {loading, data} = this.props;
 		return (
 			<section>
 				<Table
-					dataSource={this.state.data}
+					dataSource={data}
 					rowKey={record => record._id}
 					pagination={{pageSize: 50}}
 					scroll={{ y: 340 }}
 					bordered
-					loading={this.state.loading}
+					loading={loading}
 					size="middle"
 				>
 					<Column
@@ -234,4 +236,20 @@ class ContentTable extends React.Component {
 	}
 }
 
-export default ContentTable
+const mapStateToProps = state => {
+	"use strict";
+	const {loading, data, tagModalVisible, selectedItem} = state.tableContent;
+	return {
+		data: data,
+		loading: loading,
+		tagModalVisible: tagModalVisible,
+		selectedItem: selectedItem
+	}
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+	"use strict";
+
+}
+
+export default connect(mapStateToProps)(ContentTable);
