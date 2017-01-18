@@ -9,36 +9,28 @@ import rootReducer from '../reducers/index'
 PouchDB.plugin(require('pouchdb-find'));
 
 const initialState = {
-	tableContent: {
-		data: {},
-		/*
-		 {
+	data: {},
+	/*
+	 {
 		 result: [idxxx],
 		 entities: {
-		 "files": {
-		 idxxx: {_id: idxxx, size: 2M, name: xxx, tags:['idyyy'], times: 0},
-		 ...
-		 },
-		 "tags": {
-		 idyyy: {_id: idyyy, count: 1},
-		 ...
+			 "files": {
+				 idxxx: {_id: idxxx, size: 2M, name: xxx, tags:['idyyy'], times: 0},
+				 ...
+			 },
+			 "tags": {
+				 idyyy: {_id: idyyy, count: 1},
+				 ...
+			 }
 		 }
-		 }
 		 ...
-		 }
-		 */
-		loading: false,
+	 }
+	 */
+	ui: {
+		tableLoading: false,
 		tagModalVisible: false,
-		selectedItem: {}
-	},
-	tags: {
-		data: {}
-	},
-	// tagModal: {
-	// 	visible: false,
-	// 	item: {}
-	// },
-	menuCollapsed: false
+		menuCollapsed: false
+	}
 };
 
 /*let videoDB = new PouchDB('videos');
