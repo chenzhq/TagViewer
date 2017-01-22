@@ -1,14 +1,11 @@
+"use strict";
+
 import 'babel-polyfill';
-import React, {
-	PropTypes
-} from 'react'
+import React, {	PropTypes} from 'react'
 import {connect} from 'react-redux';
-import {
-	Table,
-	Button,
-	Tag
-} from 'antd'
+import {Table,Button,	Tag} from 'antd'
 import update from 'immutability-helper';
+// import { denormalize, schema } from 'normalizr';
 
 import AddTagModal from './AddTagModal'
 import PouchDB from 'pouchdb/dist/pouchdb.min';
@@ -23,6 +20,7 @@ const {
 	shell
 } = require('electron');
 
+import {openTagModal} from '../actions/actions';
 
 class ContentTable extends React.Component {
 	constructor(props) {
@@ -34,7 +32,7 @@ class ContentTable extends React.Component {
 			selectedItem: {},
 			allTags: []
 		};
-
+		const {dispatch, files} = props;
 		this.handleNameClick = function(path) {
 			event.preventDefault();
       shell.openItem(path);
@@ -42,11 +40,14 @@ class ContentTable extends React.Component {
 
 		//点击标签+按钮
 		this.handleTagPlus = function(record) {
-			let oldstate = this.state;
-			this.setState(update(oldstate, {
-				modalVisible: {$set: true},
-				selectedItem: {$set: record}
-			}));
+			//计算选择的item是files数组中的第几个
+			// let index = 0;
+			// for(let i = 0, l = files.length; i < l; ++i) {
+			// 	if(files[i]._id === record._id) {
+			// 		index = i;
+			// 	}
+			// }
+			dispatch(openTagModal(record._id));
 
 		}
 
@@ -62,12 +63,9 @@ class ContentTable extends React.Component {
 			let _data = this.state.data;
 			let changeOne = 0;
 			let modifiedData;
-			console.log(_data);
 			for(let i = 0, l = _data.length; i < l; i++) {
 				if(_data[i]._id === item._id) {
 					changeOne = i;
-					console.log(_data[i].tags);
-					console.log(item.tags);
 					modifiedData = update(_data, {
 						i: {
 							tags: {$splice: [[0, _data[i].tags.length, item.tags]]}
@@ -156,11 +154,11 @@ class ContentTable extends React.Component {
   }
 
 	render() {
-		const {loading, data} = this.props;
+		const {loading, files, tags, selectedItemIds, tagModalVisible} = this.props;
 		return (
 			<section>
 				<Table
-					dataSource={data}
+					dataSource={files}
 					rowKey={record => record._id}
 					pagination={{pageSize: 50}}
 					scroll={{ y: 340 }}
@@ -210,7 +208,7 @@ class ContentTable extends React.Component {
 										type="ghost"
 										size="small"
 										icon="plus"
-										onClick={((record) => {this.handleTagPlus(record)}).bind(this,record)}
+										onClick={(record => {this.handleTagPlus(record)}).bind(this,record)}
 										style={{margin: '5px 0', padding: '0 3px', float: 'right'}}
 									></Button>
 								}
@@ -226,9 +224,9 @@ class ContentTable extends React.Component {
 					/>
 				</Table>
 				<AddTagModal
-					item={this.state.selectedItem}
-					visible={this.state.modalVisible}
-					allTags={this.state.allTags}
+					allTags={tags}
+					visible={tagModalVisible}
+					itemId={selectedItemIds[0]}
 					updateItem={this.updateItem}
 				/>
 			</section>
@@ -237,18 +235,18 @@ class ContentTable extends React.Component {
 }
 
 const mapStateToProps = state => {
-	"use strict";
-	const {loading, data, tagModalVisible, selectedItem} = state.tableContent;
+	const {ui, data} = state;
+	const {files, tags, selectedItemIds} = data;
 	return {
-		data: data,
-		loading: loading,
-		tagModalVisible: tagModalVisible,
-		selectedItem: selectedItem
+		files: Object.keys(files).map(key => (files[key])),
+		tags: Object.keys(tags).map(key => (tags[key])),
+		loading: ui.tableLoading,
+		tagModalVisible: ui.tagModalVisible,
+		selectedItemIds: selectedItemIds
 	}
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => {
-	"use strict";
 
 }
 

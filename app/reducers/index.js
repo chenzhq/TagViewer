@@ -4,8 +4,10 @@
 import {combineReducers} from 'redux';
 import ui from './uiReducer'
 import loadFiles from './tableContent'
+import temp from './tempReducer';
 
 export default combineReducers({
 	ui,
-	loadFiles
+	data: loadFiles,
+	temp
 })

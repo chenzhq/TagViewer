@@ -11,6 +11,19 @@ PouchDB.plugin(require('pouchdb-find'));
 const initialState = {
 	data: {},
 	/*
+	{
+		files:[
+			{_id: idxxx, size: 2M, name: xxx, tags:['idyyy'], times: 0},
+			...
+		],
+		tags:[
+			{_id: idyyy, count: 1},
+			...
+		],
+		selectedItemIndex: x(num)
+	}
+	*/
+	/*
 	 {
 		 result: [idxxx],
 		 entities: {
@@ -25,11 +38,25 @@ const initialState = {
 		 }
 		 ...
 	 }
+
+	 "files": {
+			 idxxx: {_id: idxxx, size: 2M, name: xxx, tags:['idyyy'], times: 0},
+			 ...
+		},
+		"tags": {
+			 idyyy: {_id: idyyy, count: 1},
+			 ...
+	 	},
+	 	selectedItemIds: []
 	 */
+	temp: {
+		modifiedTags: []
+	},
 	ui: {
 		tableLoading: false,
 		tagModalVisible: false,
-		menuCollapsed: false
+		menuCollapsed: false,
+		tagConfirmLoading: false
 	}
 };
 

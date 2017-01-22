@@ -15,7 +15,7 @@ import MenuSider from './MenuSider'
 import ContentTable from './ContentTable'
 import  AddTagModal from './AddTagModal'
 
-import {collapseMenu, filesLoading, finishLoading, addFiles} from '../actions/actions'
+import {collapseMenu, beginLoading, addFiles} from '../actions/actions'
 
 const PouchDB = require('pouchdb/dist/pouchdb.min');
 PouchDB.plugin(require('pouchdb-find'));
@@ -51,13 +51,13 @@ class MainLayout extends React.Component {
 		ipcRenderer.on('selected-directory', function (event, path) {
 			//等待遍历
 			// this.setState(update(this.state, {loading: {$set: true}}));
-			// dispatch(filesLoading());
+			// dispatch(beginLoading());
 
 			dispatch(addFiles(path[0])).then(() =>
 				console.log('done!')
 			)
 			//发送ipc 开始读取路径下的文件
-			event.sender.send('readdir', path[0]);
+			// event.sender.send('readdir', path[0]);
 		});
 
 		/*ipcRenderer.on('allfiles-get', (function (event, files) {
@@ -129,7 +129,7 @@ const mapStateToProps = state => {
 const mapDispatchToProps = (dispatch, ownProps) => {
 
 	return {
-		tableLoading: bindActionCreators(filesLoading(ownProps.tableLoading), dispatch)
+		tableLoading: bindActionCreators(beginLoading(ownProps.tableLoading), dispatch)
 	}
 }
 
