@@ -1,11 +1,11 @@
 /**
  * Created by chen on 2017/1/13.
  */
-import React, {component, PropTypes} from 'react';
+import React, {Component, PropTypes} from 'react';
 import {Layout, Menu, Icon} from 'antd';
 const {Sider} = Layout;
 
-class MenuSider extends component {
+class MenuSider extends Component {
 	render() {
 		const {collapsed, handleMenuClick} = this.props;
 		return (
@@ -40,7 +40,7 @@ class MenuSider extends component {
 
 
 MenuSider.propTypes = {
-	collapsed: PropTypes.func.isRequired,
+	collapsed: PropTypes.bool.isRequired,
 	handleMenuClick: PropTypes.func.isRequired
 };
 

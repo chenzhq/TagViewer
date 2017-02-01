@@ -2,8 +2,12 @@
  * Created by chen on 2017/1/12.
  */
 import {combineReducers} from 'redux';
-import menuCollapsed from '../reducers/menuCollapse'
+import ui from './uiReducer'
+import loadFiles from './tableContent'
+import temp from './tempReducer';
 
-export default combineReducers(
-	menuCollapsed
-)
+export default combineReducers({
+	ui,
+	data: loadFiles,
+	temp
+})

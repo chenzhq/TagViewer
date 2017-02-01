@@ -1,13 +1,12 @@
+"use strict";
+
 import 'babel-polyfill';
-import React, {
-	PropTypes
-} from 'react'
-import {
-	Table,
-	Button,
-	Tag
-} from 'antd'
+import React, {	PropTypes} from 'react'
+import {bindActionCreators} from 'redux';
+import {connect} from 'react-redux';
+import {Table,Button,	Tag} from 'antd'
 import update from 'immutability-helper';
+// import { denormalize, schema } from 'normalizr';
 
 import AddTagModal from './AddTagModal'
 import PouchDB from 'pouchdb/dist/pouchdb.min';
@@ -22,18 +21,19 @@ const {
 	shell
 } = require('electron');
 
+import {openTagModal, changeTag, modifyTags, closeTagModal} from '../actions/actions';
 
 class ContentTable extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state = {
-			data: [],
-			loading: true,
-			modalVisible: false,
-			selectedItem: {},
-			allTags: []
-		};
-
+		// this.state = {
+		// 	data: [],
+		// 	loading: true,
+		// 	modalVisible: false,
+		// 	selectedItem: {},
+		// 	allTags: []
+		// };
+		const {dispatch} = props;
 		this.handleNameClick = function(path) {
 			event.preventDefault();
       shell.openItem(path);
@@ -41,11 +41,15 @@ class ContentTable extends React.Component {
 
 		//点击标签+按钮
 		this.handleTagPlus = function(record) {
-			let oldstate = this.state;
-			this.setState(update(oldstate, {
-				modalVisible: {$set: true},
-				selectedItem: {$set: record}
-			}));
+			//计算选择的item是files数组中的第几个
+			// let index = 0;
+			// for(let i = 0, l = files.length; i < l; ++i) {
+			// 	if(files[i]._id === record._id) {
+			// 		index = i;
+			// 	}
+			// }
+			this.props.tagPlus(record);
+			// dispatch(openTagModal(record._id));
 
 		}
 
@@ -54,19 +58,16 @@ class ContentTable extends React.Component {
 
 			let testarr = [{a: 'a', b: 'b'},{c: 'c', d: 'd'}];
 			let num = 1;
-			console.log(update(testarr, {num: {c: {$set: 'cc'}}}))
+			console.log(update(testarr, {num: {c: {$set: 'cc'}}}));
 
 
-			console.log(item.tags)
+			console.log(item.tags);
 			let _data = this.state.data;
 			let changeOne = 0;
 			let modifiedData;
-			console.log(_data)
 			for(let i = 0, l = _data.length; i < l; i++) {
 				if(_data[i]._id === item._id) {
 					changeOne = i;
-					console.log(_data[i].tags);
-					console.log(item.tags);
 					modifiedData = update(_data, {
 						i: {
 							tags: {$splice: [[0, _data[i].tags.length, item.tags]]}
@@ -76,7 +77,7 @@ class ContentTable extends React.Component {
 					break;
 				}
 			}
-			console.log(modifiedData)
+			console.log(modifiedData);
 
 			// this.setState(update(_data, {}));
 			// this.setState(update(this.state, {
@@ -89,15 +90,15 @@ class ContentTable extends React.Component {
 
 		}).bind(this);
 
-		//打开文件夹后，等待处理
+		/*		//打开文件夹后，等待处理
 		ipcRenderer.on('selected-directory', (function(event, path) {
 			//等待遍历
 			this.setState(update(this.state, {loading: {$set: true}}));
 			//发送ipc 开始读取路径下的文件
 			event.sender.send('readdir', path[0]);
-		}).bind(this));
+		 }).bind(this));*/
 
-		ipcRenderer.on('allfiles-get', (function (event, files) {
+		/*	ipcRenderer.on('allfiles-get', (function (event, files) {
 			let videoDB = new PouchDB('videos');
 			videoDB.bulkDocs(files).then(results => {
 				//The results are returned in the same order as the supplied “docs” array.
@@ -112,10 +113,12 @@ class ContentTable extends React.Component {
 			}).catch((err) => {
 				console.log(err)
 			});
-		}).bind(this))
+		 }).bind(this))*/
 	}
 
 	componentWillMount() {
+		// console.log('ContentTable will mount');
+
 		let videoDB = new PouchDB('videos');
 		videoDB.createIndex({
 			index: {
@@ -125,7 +128,7 @@ class ContentTable extends React.Component {
   }
 
 	componentDidMount() {
-		let videoDB = new PouchDB('videos');
+		/*let videoDB = new PouchDB('videos');
 		let tagDB = new PouchDB('tags');
 
 		videoDB.find({
@@ -150,20 +153,25 @@ class ContentTable extends React.Component {
 			this.setState(update(this.state, {allTags: {$set: tagArr}}, {loading: {$set: false}}))
 		}).catch(err => {
 			console.error('tag查询失败', err);
-		});
+		});*/
+		// console.log('ContentTable did mount');
 
-  }
+	}
 
 	render() {
+		const {loading, files, tags, selectedItemIds, selectedItem, tagModalVisible, tagConfirmLoading} = this.props;
+		const {handleOk, handleCancel, handleSelectChange} = this.props;
+		// console.log('ContentTable render');
+
 		return (
 			<section>
 				<Table
-					dataSource={this.state.data}
+					dataSource={files}
 					rowKey={record => record._id}
 					pagination={{pageSize: 50}}
 					scroll={{ y: 340 }}
 					bordered
-					loading={this.state.loading}
+					loading={loading}
 					size="middle"
 				>
 					<Column
@@ -208,7 +216,7 @@ class ContentTable extends React.Component {
 										type="ghost"
 										size="small"
 										icon="plus"
-										onClick={((record) => {this.handleTagPlus(record)}).bind(this,record)}
+										onClick={(record => {this.handleTagPlus(record)}).bind(this,record)}
 										style={{margin: '5px 0', padding: '0 3px', float: 'right'}}
 									></Button>
 								}
@@ -224,14 +232,49 @@ class ContentTable extends React.Component {
 					/>
 				</Table>
 				<AddTagModal
-					item={this.state.selectedItem}
-					visible={this.state.modalVisible}
-					allTags={this.state.allTags}
-					updateItem={this.updateItem}
+					allTags={tags}
+					visible={tagModalVisible}
+					confirmLoading={tagConfirmLoading}
+					//itemId={selectedItemIds[0]}
+					item={selectedItem}
+					handleOk={handleOk}
+					handleCancel={handleCancel}
+					handleSelectChange={handleSelectChange}
 				/>
 			</section>
 	)
 	}
 }
 
-export default ContentTable
+const mapStateToProps = state => {
+	const {data,ui} = state;
+	const {files, tags, selectedItemIds} = data;
+	/*console.log('data ', data);
+	console.log('ui ', ui);
+	console.log('tagModalVisible ', ui.tagModalVisible);
+	console.log('state.data.files ', state.data.files);
+	console.log('files.data ', data.files);
+	console.log('files ', files);*/
+	// console.log('contenttable render tags ', tags);
+	return {
+		files: Object.keys(files).map(key => (files[key])),
+		tags: Object.keys(tags).map(key => (tags[key]._id)),
+		loading: ui.tableLoading,
+		tagConfirmLoading: ui.tagConfirmLoading,
+		tagModalVisible: ui.tagModalVisible,
+		selectedItem: files[selectedItemIds],
+		selectedItemIds: selectedItemIds
+	}
+};
+
+const mapDispatchToProps = (dispatch, ownProps) => {
+	return {
+		dispatch: dispatch,
+		handleOk: bindActionCreators(modifyTags, dispatch),
+		handleCancel: bindActionCreators(closeTagModal, dispatch),
+		tagPlus: bindActionCreators(openTagModal, dispatch),
+		handleSelectChange: bindActionCreators(changeTag, dispatch)
+	}
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(ContentTable);

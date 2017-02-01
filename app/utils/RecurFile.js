@@ -1,10 +1,10 @@
 /**
  * Created by chen on 2017/01/06.
  */
-const {readdir, stat} = require("fs");
+const {readdir, stat, readdirSync, lstatSync} = require("fs");
 const path = require("path");
 
-function readdirRecur(_path, event, callback) {
+export function readdirRecur(_path, callback) {
 	'use strict';
 	let list = [];
 
@@ -27,7 +27,7 @@ function readdirRecur(_path, event, callback) {
 				}
 
 				if (stats.isDirectory()) {
-					readdirRecur(filePath, event, function(__err, res) {
+					readdirRecur(filePath, function (__err, res) {
 						if (__err) {
 							return callback(__err);
 						}
@@ -35,7 +35,7 @@ function readdirRecur(_path, event, callback) {
 						list = list.concat(res);
 						pending -= 1;
 
-						event.sender.send('onedir-get', filePath);
+						// event.sender.send('onedir-get', filePath);
 						if (!pending) {
 							return callback(null, list);
 						}
@@ -50,7 +50,7 @@ function readdirRecur(_path, event, callback) {
 					};
 					list.push(video);
 					pending -= 1;
-					event.sender.send('onefile-get', filePath);
+					// event.sender.send('onefile-get', filePath);
 					if (!pending) {
 						return callback(null, list);
 					}
@@ -61,4 +61,27 @@ function readdirRecur(_path, event, callback) {
 	});
 }
 
-module.exports = readdirRecur;
+export function recursiveReaddirSync(_path) {
+	let list = []
+		, files = readdirSync(_path)
+		, stats
+		;
+
+	files.forEach(function (file) {
+		stats = lstatSync(path.join(_path, file));
+		if(stats.isDirectory()) {
+			list = list.concat(recursiveReaddirSync(path.join(_path, file)));
+		} else {
+			let video = {
+				"_id": path.join(_path, file),
+				"name": file,
+				"size": (stats.size/1024/1024).toFixed(2)+' MB',
+				"tags": [],
+				"times": 0
+			};
+			list.push(video);
+		}
+	});
+	return list;
+}
+

@@ -1,35 +1,36 @@
+"use strict";
+
 import React, {PropTypes} from 'react';
 import {Modal, Select, Button} from 'antd';
 import PouchDB from 'pouchdb/dist/pouchdb.min';
+// import update from 'immutability-helper';
+// import {changeTag, modifyTags, closeTagModal} from '../actions/actions';
 PouchDB.plugin(require('pouchdb-upsert'));
-import update from 'immutability-helper';
+import {connect} from 'react-redux';
 
 class AddTagModal extends React.Component {
 	constructor(props) {
 		super(props);
-		this.state={
-			visible: props.visible,
-			item: {},
-			allTags: []
-		};
-		let videoDB = new PouchDB('videos');
-		let tagDB = new PouchDB('tags');
+		const {dispatch, itemId} = props;
+		// let videoDB = new PouchDB('videos');
+		// let tagDB = new PouchDB('tags');
 
 		//
-		this.handleOk = function() {
-			this.setState({confirmLoading: true});
+		/*this.handleOk = function() {
 
-			let previousTags = this.props.item.tags;
-			let subsequentTags = this.state.item.tags;
+			/!*this.setState({confirmLoading: true});
+
+			let previousTags = itemId.tags;
+			let subsequentTags = this.state.itemId.tags;
 			//如果标签没有实质的变化，则直接关闭
 			if(previousTags.sort().toString() === subsequentTags.sort().toString()) {
-				this.setState({visible: false, item: {}});
+				this.setState({visible: false, itemId: {}});
 				return;
 			}
 
-			let _item = this.state.item;
-			// console.log(_item)
-			videoDB.upsert(_item._id, doc => {
+			let _itemId = this.state.itemId;
+			// console.log(_itemId)
+			videoDB.upsert(_itemId._id, doc => {
 				// console.log(doc)
 				doc.tags = subsequentTags;
 				return doc;
@@ -57,19 +58,21 @@ class AddTagModal extends React.Component {
 				}).then(res => {}).catch(err => {console.error(err)})
 			});
 
-			this.props.updateItem(_item);
+			this.props.updateitemId(_itemId);
 
-			this.setState({visible: false, confirmLoading: false})
+			this.setState({visible: false, confirmLoading: false})*!/
 
-		}
+			dispatch(modifyTags(itemId));
+		};
 
 		this.handleCancel = function () {
-			this.setState({visible: false, item: {}});
-		}
+			dispatch(closeTagModal());
+			// this.setState({visible: false, itemId: {}});
+		};
 
-		this.handleSelectChange = (function (value) {
-			this.setState(update(this.state, {item: {tags: {$set: value}}}))
-		}).bind(this)
+		this.handleSelectChange = function (value) {
+			dispatch(changeTag(value));
+		}*/
 	}
 
 	componentDidMount() {
@@ -77,31 +80,38 @@ class AddTagModal extends React.Component {
 	}
 
 	componentWillReceiveProps(nextProps) {
-		if(this.props.item !== nextProps.item) {
+		/*if(this.props.itemId !== nextProps.itemId) {
 			this.setState(update(this.state, {
-				item: {$set: nextProps.item},
+				itemId: {$set: nextProps.itemId},
 				visible: {$set: nextProps.visible}
 			}));
-		}
+		}*/
 	}
 
 	render() {
+		const {item, visible, confirmLoading, allTags} = this.props;
+		const {handleOk, handleCancel, handleSelectChange} = this.props;
+		// console.log('tag render', item);
+		let defaultTags = item === undefined ? [] : item.tags;
+		// console.log('defaultTags ', defaultTags);
+		// console.log('allTags ', allTags);
 		return (
 			<Modal
-				title={this.props.item.name + " 标签"}
-				visible={this.state.visible}
-				confirmLoading={this.state.confirmLoading}
-				onOk={this.handleOk.bind(this)}
-				onCancel={this.handleCancel.bind(this)}
+				title={item === undefined ? '' : item.name + " 标签"}
+				visible={visible}
+				confirmLoading={confirmLoading}
+				onOk={() => handleOk(item._id)}
+				onCancel={handleCancel}
 				>
 				<Select
 					tags
 					style={{width: '80%'}}
 					tokenSeparators={[',', '，', ' ']}
-					defaultValue={this.props.item.tags}
-					onChange={this.handleSelectChange}
+					value={this.props.modifiedTags}
+					//defaultValue={defaultTags}
+					onChange={(value) => handleSelectChange(value)}
 					>
-					{this.props.allTags.map((key, index) => (
+					{allTags.map(key => (
 						<Select.Option key={key}>{key}</Select.Option>
 					))}
 				</Select>
@@ -110,4 +120,12 @@ class AddTagModal extends React.Component {
 	}
 }
 
-export default AddTagModal
+const mapStateToProps = function (state) {
+	const {data, ui, temp} = state;
+	const {modifiedTags} = temp;
+	return {
+		modifiedTags
+	}
+}
+
+export default connect(mapStateToProps)(AddTagModal)
