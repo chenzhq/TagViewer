@@ -3,21 +3,22 @@
 import React, {PropTypes} from 'react';
 import {Modal, Select, Button} from 'antd';
 import PouchDB from 'pouchdb/dist/pouchdb.min';
-import update from 'immutability-helper';
-import {changeTag, modifyTags, closeTagModal} from '../actions/actions';
+// import update from 'immutability-helper';
+// import {changeTag, modifyTags, closeTagModal} from '../actions/actions';
 PouchDB.plugin(require('pouchdb-upsert'));
+import {connect} from 'react-redux';
 
 class AddTagModal extends React.Component {
 	constructor(props) {
 		super(props);
 		const {dispatch, itemId} = props;
-		let videoDB = new PouchDB('videos');
-		let tagDB = new PouchDB('tags');
+		// let videoDB = new PouchDB('videos');
+		// let tagDB = new PouchDB('tags');
 
 		//
-		this.handleOk = function() {
+		/*this.handleOk = function() {
 
-			/*this.setState({confirmLoading: true});
+			/!*this.setState({confirmLoading: true});
 
 			let previousTags = itemId.tags;
 			let subsequentTags = this.state.itemId.tags;
@@ -59,7 +60,7 @@ class AddTagModal extends React.Component {
 
 			this.props.updateitemId(_itemId);
 
-			this.setState({visible: false, confirmLoading: false})*/
+			this.setState({visible: false, confirmLoading: false})*!/
 
 			dispatch(modifyTags(itemId));
 		};
@@ -69,13 +70,9 @@ class AddTagModal extends React.Component {
 			// this.setState({visible: false, itemId: {}});
 		};
 
-		/*this.handleSelectChange = (function (value) {
-			this.setState(update(this.state, {itemId: {tags: {$set: value}}}))
-		}).bind(this)*/
-
 		this.handleSelectChange = function (value) {
 			dispatch(changeTag(value));
-		}
+		}*/
 	}
 
 	componentDidMount() {
@@ -92,21 +89,27 @@ class AddTagModal extends React.Component {
 	}
 
 	render() {
-		const {files,itemId, visible, allTags} = this.props;
+		const {item, visible, confirmLoading, allTags} = this.props;
+		const {handleOk, handleCancel, handleSelectChange} = this.props;
+		// console.log('tag render', item);
+		let defaultTags = item === undefined ? [] : item.tags;
+		// console.log('defaultTags ', defaultTags);
+		// console.log('allTags ', allTags);
 		return (
 			<Modal
-				title={itemId.name + " 标签"}
+				title={item === undefined ? '' : item.name + " 标签"}
 				visible={visible}
-				confirmLoading={this.state.confirmLoading}
-				onOk={this.handleOk.bind(this)}
-				onCancel={this.handleCancel.bind(this)}
+				confirmLoading={confirmLoading}
+				onOk={() => handleOk(item._id)}
+				onCancel={handleCancel}
 				>
 				<Select
 					tags
 					style={{width: '80%'}}
 					tokenSeparators={[',', '，', ' ']}
-					defaultValue={files[itemId].tags}
-					onChange={this.handleSelectChange}
+					value={this.props.modifiedTags}
+					//defaultValue={defaultTags}
+					onChange={(value) => handleSelectChange(value)}
 					>
 					{allTags.map(key => (
 						<Select.Option key={key}>{key}</Select.Option>
@@ -117,10 +120,11 @@ class AddTagModal extends React.Component {
 	}
 }
 
-const mapStateToProps = state => {
-	const {files} = state.data;
+const mapStateToProps = function (state) {
+	const {data, ui, temp} = state;
+	const {modifiedTags} = temp;
 	return {
-		files: files
+		modifiedTags
 	}
 }
 

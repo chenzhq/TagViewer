@@ -10,12 +10,12 @@ const {ipcRenderer} = require('electron');
 import update from 'immutability-helper';
 
 require('../styles/MainLayout.css');
+import { normalize, schema } from 'normalizr';
 
-import MenuSider from './MenuSider'
+import MenuSider from './MenuSider_2'
 import ContentTable from './ContentTable'
-import  AddTagModal from './AddTagModal'
 
-import {collapseMenu, beginLoading, addFiles} from '../actions/actions'
+import {collapseMenu, beginLoading, searchPath, initialState} from '../actions/actions'
 
 const PouchDB = require('pouchdb/dist/pouchdb.min');
 PouchDB.plugin(require('pouchdb-find'));
@@ -23,17 +23,14 @@ PouchDB.plugin(require('pouchdb-find'));
 class MainLayout extends React.Component {
 	constructor(props) {
 		super(props);
-		const {dispatch, menuCollapsed} = props;
+		const {dispatch} = props;
 		//保存一个单独的state，标识菜单是否折叠
 		// this.state = {
 		// 	collapsed: false
 		// };
 
 		this.toggle = () => {
-			dispatch(collapseMenu(menuCollapsed));
-			// this.setState({
-			// 	collapsed: !this.state.collapsed
-			// });
+			dispatch(collapseMenu(this.props.menuCollapsed));
 		}
 
 		//点击左侧菜单事件
@@ -43,8 +40,10 @@ class MainLayout extends React.Component {
 			} else if (item.key === '2') {
 				let videoDB = new PouchDB('videos');
 				let tagDB = new PouchDB('tags');
+				// let allTags = new PouchDB('allTags');
 				videoDB.destroy().catch((err) => console.log(err));
 				tagDB.destroy().catch((err) => console.log(err));
+				// allTags.destroy();
 			}
 		}
 
@@ -53,9 +52,7 @@ class MainLayout extends React.Component {
 			// this.setState(update(this.state, {loading: {$set: true}}));
 			// dispatch(beginLoading());
 
-			dispatch(addFiles(path[0])).then(() =>
-				console.log('done!')
-			)
+			dispatch(searchPath(path[0]));
 			//发送ipc 开始读取路径下的文件
 			// event.sender.send('readdir', path[0]);
 		});
@@ -69,7 +66,7 @@ class MainLayout extends React.Component {
 		 files.splice(i, 1);
 		 }
 		 }
-		 dispatch(finishLoading(files));
+		 dispatch(addFiles(files));
 		 // this.setState(update(this.state, {data: {$push: files}, loading: {$set: false}}));
 
 		 }).catch((err) => {
@@ -80,7 +77,9 @@ class MainLayout extends React.Component {
 
 
 	componentWillMount() {
-		let tagDB = new PouchDB('allTags');
+		// console.log('MainLayout will mount');
+
+		/*let tagDB = new PouchDB('allTags');
 
 		tagDB.find({
 			selector: {
@@ -89,11 +88,17 @@ class MainLayout extends React.Component {
 		}).then(res => {
 			let oldState = this.state;
 			this.setState(update(oldState, {tags: {$set: res.docs}}))
-		}).catch(err => console.log(err));
+		}).catch(err => console.log(err));*/
   }
+
+  componentDidMount() {
+		// console.log('MainLayout did mount');
+		this.props.dispatch(initialState());
+	}
 
 	render() {
 		const {menuCollapsed} = this.props;
+		// console.log('MainLayout render');
 		return (
 			<Layout className="layout">
 				<MenuSider
@@ -109,7 +114,7 @@ class MainLayout extends React.Component {
             />
           </Header>
 					<Content style={{ margin: '18px 12px', padding: 20, background: '#fff', minHeight: 470 }}>
-							<ContentTable tags={this.state.allTags}/>
+							<ContentTable />
 					</Content>
 				</Layout>
 			</Layout>
@@ -129,9 +134,10 @@ const mapStateToProps = state => {
 const mapDispatchToProps = (dispatch, ownProps) => {
 
 	return {
+		initial: bindActionCreators(initialState(), dispatch),
 		tableLoading: bindActionCreators(beginLoading(ownProps.tableLoading), dispatch)
 	}
 }
 
 
-export default connect(mapStateToProps, mapDispatchToProps)(MainLayout);
+export default connect(mapStateToProps)(MainLayout);

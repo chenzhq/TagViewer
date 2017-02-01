@@ -1,10 +1,10 @@
 /**
  * Created by chen on 2017/01/06.
  */
-const {readdir, stat} = require("fs");
+const {readdir, stat, readdirSync, lstatSync} = require("fs");
 const path = require("path");
 
-function readdirRecur(_path, callback) {
+export function readdirRecur(_path, callback) {
 	'use strict';
 	let list = [];
 
@@ -61,4 +61,27 @@ function readdirRecur(_path, callback) {
 	});
 }
 
-module.exports = readdirRecur;
+export function recursiveReaddirSync(_path) {
+	let list = []
+		, files = readdirSync(_path)
+		, stats
+		;
+
+	files.forEach(function (file) {
+		stats = lstatSync(path.join(_path, file));
+		if(stats.isDirectory()) {
+			list = list.concat(recursiveReaddirSync(path.join(_path, file)));
+		} else {
+			let video = {
+				"_id": path.join(_path, file),
+				"name": file,
+				"size": (stats.size/1024/1024).toFixed(2)+' MB',
+				"tags": [],
+				"times": 0
+			};
+			list.push(video);
+		}
+	});
+	return list;
+}
+

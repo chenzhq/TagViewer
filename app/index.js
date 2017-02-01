@@ -7,7 +7,7 @@ import React, {PropTypes} from 'react';
 import {Provider} from 'react-redux'
 
 import MainLayout from './components/MainLayout'
-import configureStore from 'store/store';
+import configureStore from './store/store';
 
 
 render(
