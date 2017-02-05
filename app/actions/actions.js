@@ -22,6 +22,9 @@ export const SAVE_TAG_SUCCESS = 'SAVE_TAG_SUCESS';
 export const INITIAL_TAGS = 'INITIAL_TAGS';
 export const INITIAL_FILES = 'INITIAL_FILES';
 
+export const TAGPOP_VISIBLE = 'TAG_VISIBLE';
+export const CHECK_TAG = 'CHECK_TAG';
+export const CONFIRM_TAG_SEARCH = 'CONFIRM_TAG_SEARCH';
 
 
 export function collapseMenu(isCollapsed) {
@@ -115,21 +118,9 @@ export function searchPath(path) {
 
 		dispatch(beginLoading());
 
-		/*return readDirRecur(path, function (err, files) {
-			if (err) {
-				console.error(err);
-			}
-			console.log(filterDuplicatedFiles(files));
-			dispatch(addFiles(filterDuplicatedFiles(files)));
-		})*/
-
 		return Promise.resolve(path).then(recursiveReaddirSync)
 			.then(files => {
 				filterDuplicatedFiles(files, dispatch);
-
-				// let _files = filterDuplicatedFiles(files, dispatch);
-				// console.log(_files);
-				// return _files;
 			})
 
 	}
@@ -143,47 +134,6 @@ export function closeTagModal() {
 	return {type: CLOSE_TAGMODAL}
 }
 
-/*const saveTagInDB = function (previousTags, subsequentTags) {
-	let videoDB = new PouchDB('videos');
-	let tagDB = new PouchDB('tags');
-	let _item = getState().data.files[index];
-
-	let saveFileTag = function() { //修改video的tags
-		videoDB.upsert(_item._id, doc => {
-			doc.tags = subsequentTags;
-			return doc;
-		});
-	}
-
-	let savePrevTags = function () { //根据修改前的tag改变count（-1），--如果为0，则删除
-		previousTags.forEach(tag => {
-			tagDB.upsert(tag, doc => {
-				doc.count--;
-				// if(doc.count === 0) {
-				// 	doc._deleted = true;
-				// }
-				return doc;
-			})
-		});
-	}
-
-	let saveSubsTags = function () { //根据修改后的tag改变count（+1），如果没有，则新建
-		subsequentTags.forEach((tag) => {
-			tagDB.upsert(tag, doc => {
-				if (doc === {}) {
-					return {_id: tag, count: 1};
-				}
-				doc.count++;
-				return doc;
-			}).catch(err => reject(err))
-		});
-	};
-
-	return new Promise(function (resolve, reject) {
-
-	});
-
-};*/
 
 export function modifyTags(itemId) {
 
@@ -218,10 +168,6 @@ export function modifyTags(itemId) {
 				doc.tags = subsequentTags;
 				return videoDB.put(doc);
 			});
-			// videoDB.upsert(_item._id, doc => {
-			// 	doc.tags = subsequentTags;
-			// 	return doc;
-			// });
 		};
 
 		//根据对前后标签数组进行异或运算，删除的标签count-1
@@ -235,15 +181,6 @@ export function modifyTags(itemId) {
 						count: doc.count-1
 					})
 				});
-
-				/*tagDB.upsert(tag, doc => {
-					--doc.count;
-					// if(doc.count === 0) {
-					// 	doc._deleted = true;
-					// }
-					console.log('修改后 prev', doc);
-					return doc;
-				})*/
 			});
 		};
 
@@ -268,16 +205,6 @@ export function modifyTags(itemId) {
 					}
 				});
 
-				/*tagDB.upsert(tag, doc => {
-					console.log('upsert ', doc, tag);
-					if (doc === {}) {
-						console.log('新建', tag);
-						return {_id: tag, count: 1};
-					}
-					++doc.count;
-					console.log('修改后 subs ', doc);
-					return doc;
-				}).catch(err => console.error(err))*/
 			});
 		};
 
@@ -301,4 +228,24 @@ export function saveTag() {
 
 export function saveTagSuccess(itemId, previousTags, subsequentTags) {
 	return {type: SAVE_TAG_SUCCESS, itemId, previousTags, subsequentTags}
+}
+
+export function toggleTagPopVisible(isVisible) {
+	return {type: TAGPOP_VISIBLE, isVisible};
+}
+
+export function checkTag(tags) {
+	return {type: CHECK_TAG, tags};
+}
+
+export function confirmTagSearch(tags) {
+	return {type: CONFIRM_TAG_SEARCH, tags}
+}
+
+export function filterByTag(tags) {
+	return dispatch => {
+		dispatch(beginLoading());
+
+		return Promise.resolve().then(() => dispatch(confirmTagSearch(tags)));
+	}
 }

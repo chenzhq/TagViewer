@@ -22,6 +22,7 @@ const {
 } = require('electron');
 
 import {openTagModal, changeTag, modifyTags, closeTagModal} from '../actions/actions';
+import {filterByTags} from '../utils/XORArray';
 
 class ContentTable extends React.Component {
 	constructor(props) {
@@ -218,7 +219,7 @@ class ContentTable extends React.Component {
 										icon="plus"
 										onClick={(record => {this.handleTagPlus(record)}).bind(this,record)}
 										style={{margin: '5px 0', padding: '0 3px', float: 'right'}}
-									></Button>
+									/>
 								}
 							</div>
 						)
@@ -247,17 +248,12 @@ class ContentTable extends React.Component {
 }
 
 const mapStateToProps = state => {
-	const {data,ui} = state;
+	const {data,ui, filter} = state;
 	const {files, tags, selectedItemIds} = data;
-	/*console.log('data ', data);
-	console.log('ui ', ui);
-	console.log('tagModalVisible ', ui.tagModalVisible);
-	console.log('state.data.files ', state.data.files);
-	console.log('files.data ', data.files);
-	console.log('files ', files);*/
-	// console.log('contenttable render tags ', tags);
+	const viewFiles = filterByTags(files, filter.tags);
+	console.log(viewFiles);
 	return {
-		files: Object.keys(files).map(key => (files[key])),
+		files: viewFiles,
 		tags: Object.keys(tags).map(key => (tags[key]._id)),
 		loading: ui.tableLoading,
 		tagConfirmLoading: ui.tagConfirmLoading,

@@ -3,7 +3,7 @@
 import React from 'react'
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux'
-import {Layout, Icon} from 'antd'
+import {Layout, Icon, Popover} from 'antd'
 const {Header, Content} = Layout;
 const {ipcRenderer} = require('electron');
 
@@ -14,8 +14,9 @@ import { normalize, schema } from 'normalizr';
 
 import MenuSider from './MenuSider_2'
 import ContentTable from './ContentTable'
+import TagPop from './TagPop';
 
-import {collapseMenu, beginLoading, searchPath, initialState} from '../actions/actions'
+import {collapseMenu, beginLoading, searchPath, initialState, toggleTagPopVisible} from '../actions/actions'
 
 const PouchDB = require('pouchdb/dist/pouchdb.min');
 PouchDB.plugin(require('pouchdb-find'));
@@ -29,8 +30,12 @@ class MainLayout extends React.Component {
 		// 	collapsed: false
 		// };
 
-		this.toggle = () => {
+		this.menuToggle = () => {
 			dispatch(collapseMenu(this.props.menuCollapsed));
+		}
+
+		this.tagpopToggle = () => {
+			dispatch(toggleTagPopVisible(this.props.tagPopoverVisible));
 		}
 
 		//点击左侧菜单事件
@@ -97,7 +102,7 @@ class MainLayout extends React.Component {
 	}
 
 	render() {
-		const {menuCollapsed} = this.props;
+		const {menuCollapsed, tagPopoverVisible} = this.props;
 		// console.log('MainLayout render');
 		return (
 			<Layout className="layout">
@@ -110,8 +115,19 @@ class MainLayout extends React.Component {
             <Icon
 							className="trigger"
 							type={menuCollapsed ? 'menu-unfold' : 'menu-fold'}
-							onClick={this.toggle}
+							onClick={() => this.props.menuToggle(this.props.menuCollapsed)}
             />
+						<Popover
+							content={<TagPop />}
+							trigger="click"
+							placement="bottomLeft"
+							//visible={tagPopoverVisible}
+						>
+							<Icon
+								type="tag-o"
+								onClick={() => this.props.tagPopToggle(this.props.tagPopoverVisible)}
+							/>
+						</Popover>
           </Header>
 					<Content style={{ margin: '18px 12px', padding: 20, background: '#fff', minHeight: 470 }}>
 							<ContentTable />
@@ -123,10 +139,11 @@ class MainLayout extends React.Component {
 }
 
 const mapStateToProps = state => {
-	const {menuCollapsed, tableLoading} = state.ui;
+	const {menuCollapsed, tableLoading, tagPopoverVisible} = state.ui;
 	return {
 		menuCollapsed,
-		tableLoading
+		tableLoading,
+		tagPopoverVisible
 	}
 
 }
@@ -134,10 +151,12 @@ const mapStateToProps = state => {
 const mapDispatchToProps = (dispatch, ownProps) => {
 
 	return {
-		initial: bindActionCreators(initialState(), dispatch),
-		tableLoading: bindActionCreators(beginLoading(ownProps.tableLoading), dispatch)
+		dispatch: dispatch,
+		initialState: bindActionCreators(initialState, dispatch),
+		menuToggle: bindActionCreators(collapseMenu, dispatch),
+		tagPopToggle: bindActionCreators(toggleTagPopVisible, dispatch)
 	}
 }
 
 
-export default connect(mapStateToProps)(MainLayout);
+export default connect(mapStateToProps, mapDispatchToProps)(MainLayout);

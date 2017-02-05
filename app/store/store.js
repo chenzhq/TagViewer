@@ -19,51 +19,21 @@ const initialState = {
 		tags: {},
 		selectedItemIds: []
 	},
-	/*
-	 {
-	 files:[
-	 {_id: idxxx, size: 2M, name: xxx, tags:['idyyy'], times: 0},
-	 ...
-	 ],
-	 tags:[
-	 {_id: idyyy, count: 1},
-	 ...
-	 ],
-	 selectedItemIndex: x(num)
-	 }
-	 */
-	/*
-	 {
-	 result: [idxxx],
-	 entities: {
-	 "files": {
-	 idxxx: {_id: idxxx, size: 2M, name: xxx, tags:['idyyy'], times: 0},
-	 ...
-	 },
-	 "tags": {
-	 idyyy: {_id: idyyy, count: 1},
-	 ...
-	 }
-	 }
-	 ...
-	 }
-
-	 "files": {
-	 idxxx: {_id: idxxx, size: 2M, name: xxx, tags:['idyyy'], times: 0},
-	 ...
-	 },
-	 "tags": {
-	 idyyy: {_id: idyyy, count: 1},
-	 ...
-	 },
-	 selectedItemIds: []
-	 */
+	filter: {
+		tags: []
+	},
 	temp: {
-		modifiedTags: []
+		modifiedTags: [],
+		//按标签搜索的缓存
+		selectedTags: []
 	},
 	ui: {
+		//表格加载
 		tableLoading: false,
+		//修改标签对话框
 		tagModalVisible: false,
+		//搜素标签气泡卡片
+		tagPopoverVisible: false,
 		menuCollapsed: false,
 		tagConfirmLoading: false
 	}
