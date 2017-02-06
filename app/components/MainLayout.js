@@ -25,10 +25,6 @@ class MainLayout extends React.Component {
 	constructor(props) {
 		super(props);
 		const {dispatch} = props;
-		//保存一个单独的state，标识菜单是否折叠
-		// this.state = {
-		// 	collapsed: false
-		// };
 
 		this.menuToggle = () => {
 			dispatch(collapseMenu(this.props.menuCollapsed));
@@ -53,57 +49,21 @@ class MainLayout extends React.Component {
 		}
 
 		ipcRenderer.on('selected-directory', function (event, path) {
-			//等待遍历
-			// this.setState(update(this.state, {loading: {$set: true}}));
-			// dispatch(beginLoading());
-
 			dispatch(searchPath(path[0]));
-			//发送ipc 开始读取路径下的文件
-			// event.sender.send('readdir', path[0]);
 		});
 
-		/*ipcRenderer.on('allfiles-get', (function (event, files) {
-		 let videoDB = new PouchDB('videos');
-		 videoDB.bulkDocs(files).then(results => {
-		 //The results are returned in the same order as the supplied “docs” array.
-		 for(let l = results.length , i = l-1; i >= 0; --i) {
-		 if(results[i].error === true) {
-		 files.splice(i, 1);
-		 }
-		 }
-		 dispatch(addFiles(files));
-		 // this.setState(update(this.state, {data: {$push: files}, loading: {$set: false}}));
-
-		 }).catch((err) => {
-		 console.log(err)
-		 });
-		 }).bind(this))*/
 	}
 
 
 	componentWillMount() {
-		// console.log('MainLayout will mount');
-
-		/*let tagDB = new PouchDB('allTags');
-
-		tagDB.find({
-			selector: {
-				count: {'$gte': 0}
-			}
-		}).then(res => {
-			let oldState = this.state;
-			this.setState(update(oldState, {tags: {$set: res.docs}}))
-		}).catch(err => console.log(err));*/
   }
 
   componentDidMount() {
-		// console.log('MainLayout did mount');
 		this.props.dispatch(initialState());
 	}
 
 	render() {
 		const {menuCollapsed, tagPopoverVisible} = this.props;
-		// console.log('MainLayout render');
 		return (
 			<Layout className="layout">
 				<MenuSider

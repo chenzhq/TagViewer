@@ -27,13 +27,7 @@ import {filterByTags} from '../utils/XORArray';
 class ContentTable extends React.Component {
 	constructor(props) {
 		super(props);
-		// this.state = {
-		// 	data: [],
-		// 	loading: true,
-		// 	modalVisible: false,
-		// 	selectedItem: {},
-		// 	allTags: []
-		// };
+
 		const {dispatch} = props;
 		this.handleNameClick = function(path) {
 			event.preventDefault();
@@ -42,16 +36,8 @@ class ContentTable extends React.Component {
 
 		//点击标签+按钮
 		this.handleTagPlus = function(record) {
-			//计算选择的item是files数组中的第几个
-			// let index = 0;
-			// for(let i = 0, l = files.length; i < l; ++i) {
-			// 	if(files[i]._id === record._id) {
-			// 		index = i;
-			// 	}
-			// }
-			this.props.tagPlus(record);
-			// dispatch(openTagModal(record._id));
 
+			this.props.tagPlus(record);
 		}
 
 		//传给Modal的回调函数，修改state.data.item.tags
@@ -80,46 +66,13 @@ class ContentTable extends React.Component {
 			}
 			console.log(modifiedData);
 
-			// this.setState(update(_data, {}));
-			// this.setState(update(this.state, {
-			// 	data: {
-			// 		changeOne: {
-			// 			tags: {$set: item.tags}
-			// 		}
-			// 	}
-			// }));
 
 		}).bind(this);
 
-		/*		//打开文件夹后，等待处理
-		ipcRenderer.on('selected-directory', (function(event, path) {
-			//等待遍历
-			this.setState(update(this.state, {loading: {$set: true}}));
-			//发送ipc 开始读取路径下的文件
-			event.sender.send('readdir', path[0]);
-		 }).bind(this));*/
 
-		/*	ipcRenderer.on('allfiles-get', (function (event, files) {
-			let videoDB = new PouchDB('videos');
-			videoDB.bulkDocs(files).then(results => {
-				//The results are returned in the same order as the supplied “docs” array.
-				for(let l = results.length , i = l-1; i >= 0; --i) {
-					if(results[i].error === true) {
-						files.splice(i, 1);
-					}
-				}
-
-				this.setState(update(this.state, {data: {$push: files}, loading: {$set: false}}));
-
-			}).catch((err) => {
-				console.log(err)
-			});
-		 }).bind(this))*/
 	}
 
 	componentWillMount() {
-		// console.log('ContentTable will mount');
-
 		let videoDB = new PouchDB('videos');
 		videoDB.createIndex({
 			index: {
@@ -129,40 +82,12 @@ class ContentTable extends React.Component {
   }
 
 	componentDidMount() {
-		/*let videoDB = new PouchDB('videos');
-		let tagDB = new PouchDB('tags');
-
-		videoDB.find({
-			selector: {
-				times: {'$gte': 0}
-			}
-		}).then(res => {
-			this.setState(update(this.state, {data: {$set: res.docs}}, {loading: {$set: false}}))
-		}).catch(err => console.error('video查询失败', err))
-
-		tagDB.find({
-			selector: {
-				count: {'$gte': 0}
-			},
-			fields: ['_id']
-		}).then(resTags => {
-			//tag转换成纯字符串数组
-			let tagArr = [];
-			for(let i = 0, len = resTags.docs.length; i < len; ++i) {
-				tagArr.push(resTags.docs[i]._id);
-			}
-			this.setState(update(this.state, {allTags: {$set: tagArr}}, {loading: {$set: false}}))
-		}).catch(err => {
-			console.error('tag查询失败', err);
-		});*/
-		// console.log('ContentTable did mount');
 
 	}
 
 	render() {
 		const {loading, files, tags, selectedItemIds, selectedItem, tagModalVisible, tagConfirmLoading} = this.props;
 		const {handleOk, handleCancel, handleSelectChange} = this.props;
-		// console.log('ContentTable render');
 
 		return (
 			<section>
