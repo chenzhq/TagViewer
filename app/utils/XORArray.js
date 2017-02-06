@@ -1,7 +1,7 @@
 /**
  * Created by chen on 2017/1/31.
  */
-"use strict";
+'use strict';
 
 export const XorArray = function (prev, subs) {
 	for(let i = 0, pLen = prev.length; i < pLen; ++i) {
@@ -45,4 +45,3 @@ export const filterByTags = function (files, tags) {
 	})
 	return res;
 };
-

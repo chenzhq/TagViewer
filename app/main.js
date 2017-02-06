@@ -7,8 +7,7 @@ const {
 } = require('electron')
     // Module to control application life.
 const {
-    readdir,
-    stat
+    readdir
 } = require('fs')
     // const app = electron.app
     // Module to create native browser window.
@@ -17,8 +16,8 @@ const {
 const path = require('path')
 const url = require('url')
 
-const isVideo = require('is-video')
-const async = require('async')
+// const isVideo = require('is-video')
+// const async = require('async')
 
 const readdirRecur = require('./utils/RecurFile')
 
@@ -89,39 +88,12 @@ ipcMain.on('open-file-dialog', function(event) {
 })
 
 ipcMain.on('readdir', function(event, path) {
-	"use strict";
+	'use strict';
 	readdirRecur(path, event, function(err, files) {
 		event.sender.send('allfiles-get', files);
 	})
 })
 
-function getVideos(_path, videoList, event) {
-    readdir(_path, function(err, fileList) {
-        async.each(fileList,
-            function(file, cb) {
-                let filePath = path.join(_path, file);
-                stat(filePath, function(err, stats) {
-                    if (isVideo(file)) {
-                        let video = {
-                            "_id": filePath,
-                            "name": file,
-                            "size": stats.size,
-                            // "path": filePath,
-                            "times": 0
-                        };
-                        videoList.push(video);
-                        event.sender.send("onefile-get", video)
-                    } else if (stats.isDirectory()) {
-                        // event.sender.send('onefile-get', filePath)
-                        getVideos(filePath, videoList, event)
-                    }
-                })
-            },
-            function(err) {
-              event.sender.send("allfile-get")
-            })
-    })
-}
 
 
 

@@ -1,11 +1,10 @@
-"use strict";
+'use strict';
 
 import 'babel-polyfill';
 import React, {	PropTypes} from 'react'
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
 import {Table,Button,	Tag} from 'antd'
-import update from 'immutability-helper';
 // import { denormalize, schema } from 'normalizr';
 
 import AddTagModal from './AddTagModal'
@@ -17,7 +16,6 @@ const {
 } = Table;
 
 const {
-	ipcRenderer,
 	shell
 } = require('electron');
 
@@ -28,7 +26,6 @@ class ContentTable extends React.Component {
 	constructor(props) {
 		super(props);
 
-		const {dispatch} = props;
 		this.handleNameClick = function(path) {
 			event.preventDefault();
       shell.openItem(path);
@@ -39,36 +36,6 @@ class ContentTable extends React.Component {
 
 			this.props.tagPlus(record);
 		}
-
-		//传给Modal的回调函数，修改state.data.item.tags
-		this.updateItem = (function (item) {
-
-			let testarr = [{a: 'a', b: 'b'},{c: 'c', d: 'd'}];
-			let num = 1;
-			console.log(update(testarr, {num: {c: {$set: 'cc'}}}));
-
-
-			console.log(item.tags);
-			let _data = this.state.data;
-			let changeOne = 0;
-			let modifiedData;
-			for(let i = 0, l = _data.length; i < l; i++) {
-				if(_data[i]._id === item._id) {
-					changeOne = i;
-					modifiedData = update(_data, {
-						i: {
-							tags: {$splice: [[0, _data[i].tags.length, item.tags]]}
-						}
-					});
-					this.setState(update(_data, modifiedData));
-					break;
-				}
-			}
-			console.log(modifiedData);
-
-
-		}).bind(this);
-
 
 	}
 
@@ -86,7 +53,7 @@ class ContentTable extends React.Component {
 	}
 
 	render() {
-		const {loading, files, tags, selectedItemIds, selectedItem, tagModalVisible, tagConfirmLoading} = this.props;
+		const {loading, files, tags, selectedItem, tagModalVisible, tagConfirmLoading} = this.props;
 		const {handleOk, handleCancel, handleSelectChange} = this.props;
 
 		return (
@@ -105,7 +72,7 @@ class ContentTable extends React.Component {
 						key="name"
 						width={300}
 						// onCellClick={this.handleNameCellClick}
-						render={(text,record, index) => (
+						render={text => (
 							<span>
 								{/*这里使用闭包传递了不同的参数,但是this的值不太明白*/}
 								<a href="#"
@@ -188,7 +155,7 @@ const mapStateToProps = state => {
 	}
 };
 
-const mapDispatchToProps = (dispatch, ownProps) => {
+const mapDispatchToProps = (dispatch) => {
 	return {
 		dispatch: dispatch,
 		handleOk: bindActionCreators(modifyTags, dispatch),
@@ -196,6 +163,21 @@ const mapDispatchToProps = (dispatch, ownProps) => {
 		tagPlus: bindActionCreators(openTagModal, dispatch),
 		handleSelectChange: bindActionCreators(changeTag, dispatch)
 	}
+}
+
+ContentTable.propTypes = {
+  files: PropTypes.arrayOf(PropTypes.string),
+  tags: PropTypes.arrayOf(PropTypes.string),
+  loading: PropTypes.bool.isRequired,
+  tagConfirmLoading: PropTypes.bool.isRequired,
+  tagModalVisible:PropTypes.bool.isRequired,
+  selectedItem: PropTypes.object,
+  selectedItemIds: PropTypes.arrayOf(PropTypes.string),
+
+  handleOk: PropTypes.func.isRequired,
+  handleCancel: PropTypes.func.isRequired,
+  tagPlus: PropTypes.func.isRequired,
+  handleSelectChange: PropTypes.func.isRequired,
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(ContentTable);

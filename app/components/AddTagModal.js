@@ -1,7 +1,7 @@
-"use strict";
+'use strict';
 
 import React, {PropTypes} from 'react';
-import {Modal, Select, Button} from 'antd';
+import {Modal, Select} from 'antd';
 import PouchDB from 'pouchdb/dist/pouchdb.min';
 PouchDB.plugin(require('pouchdb-upsert'));
 import {connect} from 'react-redux';
@@ -9,22 +9,16 @@ import {connect} from 'react-redux';
 class AddTagModal extends React.Component {
 	constructor(props) {
 		super(props);
-		const {dispatch, itemId} = props;
 	}
 
-	componentDidMount() {
-	}
 
-	componentWillReceiveProps(nextProps) {
-	}
 
 	render() {
 		const {item, visible, confirmLoading, allTags} = this.props;
 		const {handleOk, handleCancel, handleSelectChange} = this.props;
-		let defaultTags = item === undefined ? [] : item.tags;
 		return (
 			<Modal
-				title={item === undefined ? '' : item.name + " 标签"}
+				title={item === undefined ? '' : item.name + ' 标签'}
 				visible={visible}
 				confirmLoading={confirmLoading}
 				onOk={() => handleOk(item._id)}
@@ -48,11 +42,15 @@ class AddTagModal extends React.Component {
 }
 
 const mapStateToProps = function (state) {
-	const {data, ui, temp} = state;
+	const {temp} = state;
 	const {modifiedTags} = temp;
 	return {
 		modifiedTags
 	}
+}
+
+AddTagModal.propsTypes = {
+	modifiedTags: PropTypes.arrayOf(PropTypes.string)
 }
 
 export default connect(mapStateToProps)(AddTagModal)

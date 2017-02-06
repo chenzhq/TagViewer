@@ -1,8 +1,8 @@
 /**
  * Created by chen on 2017/01/06.
  */
-const {readdir, stat, readdirSync, lstatSync} = require("fs");
-const path = require("path");
+const {readdir, stat, readdirSync, lstatSync} = require('fs');
+const path = require('path');
 
 export function readdirRecur(_path, callback) {
 	'use strict';
@@ -42,11 +42,11 @@ export function readdirRecur(_path, callback) {
 					});
 				} else {
 					let video = {
-						"_id": filePath,
-						"name": file,
-						"size": (stats.size/1024/1024).toFixed(2)+' MB',
-						"tags": [],
-						"times": 1
+						'_id': filePath,
+						'name': file,
+						'size': (stats.size/1024/1024).toFixed(2)+' MB',
+						'tags': [],
+						'times': 1
 					};
 					list.push(video);
 					pending -= 1;
@@ -73,15 +73,14 @@ export function recursiveReaddirSync(_path) {
 			list = list.concat(recursiveReaddirSync(path.join(_path, file)));
 		} else {
 			let video = {
-				"_id": path.join(_path, file),
-				"name": file,
-				"size": (stats.size/1024/1024).toFixed(2)+' MB',
-				"tags": [],
-				"times": 0
+				'_id': path.join(_path, file),
+				'name': file,
+				'size': (stats.size/1024/1024).toFixed(2)+' MB',
+				'tags': [],
+				'times': 0
 			};
 			list.push(video);
 		}
 	});
 	return list;
 }
-

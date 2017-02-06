@@ -1,12 +1,12 @@
 /**
  * Created by chen on 2017/2/1.
  */
-"use strict";
+'use strict';
 
-import React from 'react';
+import React, {PropTypes} from 'react';
 import {bindActionCreators} from 'redux';
 import {connect} from 'react-redux';
-import {checkTag, confirmTagSearch, filterByTag} from '../actions/actions';
+import {checkTag, filterByTag} from '../actions/actions';
 import {Card, Checkbox, Tag, Tooltip, Button} from 'antd';
 const CheckboxGroup = Checkbox.Group;
 
@@ -53,7 +53,7 @@ class TagPop extends React.Component {
 }
 
 const mapStateToProps = state => {
-	const {ui, temp, filter, data} = state;
+	const {temp, filter, data} = state;
 	return {
 		tags: Object.keys(data.tags).map(key => (data.tags[key]._id)),
 		tempTags: temp.selectedTags,
@@ -67,6 +67,15 @@ const mapDispatchToProps = (dispatch) => {
 		checkboxChange: bindActionCreators(checkTag, dispatch),
 		searchBtnClick: bindActionCreators(filterByTag, dispatch)
 	}
+}
+
+TagPop.propTypes = {
+	tags: PropTypes.arrayOf(PropTypes.string),
+	tempTags: PropTypes.arrayOf(PropTypes.string),
+	confirmTags: PropTypes.arrayOf(PropTypes.string),
+
+	checkboxChange: PropTypes.func.isRequired,
+	searchBtnClick: PropTypes.func.isRequired
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(TagPop);

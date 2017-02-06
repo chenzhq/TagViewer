@@ -1,7 +1,7 @@
 /**
  * Created by chen on 2017/2/2.
  */
-"use strict";
+'use strict';
 
 import {combineReducers} from 'redux';
 import {CONFIRM_TAG_SEARCH} from '../actions/actions';

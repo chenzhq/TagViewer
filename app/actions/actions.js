@@ -1,8 +1,8 @@
 /**
  * Created by chen on 2017/1/12.
  */
-"use strict";
-import {readDirRecur, recursiveReaddirSync} from '../utils/RecurFile'
+'use strict';
+import {recursiveReaddirSync} from '../utils/RecurFile'
 import PouchDB from 'pouchdb/dist/pouchdb.min';
 import {XorArray} from '../utils/XORArray';
 // PouchDB.plugin(require('pouchdb-find'));
