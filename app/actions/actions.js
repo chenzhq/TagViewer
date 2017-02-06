@@ -33,6 +33,7 @@ export function collapseMenu(isCollapsed) {
 
 export function initialState() {
 	return dispatch => {
+		dispatch(beginLoading());
 		return Promise.resolve()
 			// .then(dispatch(beginLoading()))
 			.then(dispatch(initialTags()))
@@ -43,7 +44,7 @@ export function initialState() {
 
 function initialTags() {
 	return dispatch => {
-		dispatch(beginLoading());
+		// dispatch(beginLoading());
 
 		let tagDB = new PouchDB('tags');
 
@@ -71,10 +72,12 @@ function initialFiles() {
 
 		return videoDB.find({
 			selector: {
-				times: {'$gt': 0}
+				times: {'$gte': 0}
 			}
 		}).then(res => {
+			console.log(res);
 			let filesSchema = [new schema.Entity('files', {}, {idAttribute: '_id'})];
+			console.log(normalize(res.docs, filesSchema).entities.files);
 			dispatch(loadFiles(normalize(res.docs, filesSchema).entities.files));
 		})
 	}
@@ -105,7 +108,6 @@ const filterDuplicatedFiles = function (files, dispatch) {
 				files.splice(i, 1);
 			}
 		}
-		console.log(files)
 		let fileScheme = {files: [new schema.Entity('files', {}, {idAttribute: '_id'})]};
 		dispatch(addFiles(normalize({files: files}, fileScheme).entities.files));
 	}).catch((err) => {
@@ -116,12 +118,14 @@ const filterDuplicatedFiles = function (files, dispatch) {
 export function searchPath(path) {
 	return dispatch => {
 
-		dispatch(beginLoading());
+		// dispatch(beginLoading());
 
-		return Promise.resolve(path).then(recursiveReaddirSync)
-			.then(files => {
-				filterDuplicatedFiles(files, dispatch);
-			})
+		return Promise.resolve()
+		.then(dispatch(beginLoading()))
+		.then(recursiveReaddirSync.bind(null, path))
+		.then(files => {
+			filterDuplicatedFiles(files, dispatch);
+		})
 
 	}
 }

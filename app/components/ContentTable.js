@@ -60,6 +60,7 @@ class ContentTable extends React.Component {
 			<section>
 				<Table
 					dataSource={files}
+          expandedRowRender={record => <p>{record.description}</p>}
 					rowKey={record => record._id}
 					pagination={{pageSize: 50}}
 					scroll={{ y: 340 }}
@@ -143,7 +144,7 @@ const mapStateToProps = state => {
 	const {data,ui, filter} = state;
 	const {files, tags, selectedItemIds} = data;
 	const viewFiles = filterByTags(files, filter.tags);
-	console.log(viewFiles);
+	console.log('ContentTable mapStateToProps');
 	return {
 		files: viewFiles,
 		tags: Object.keys(tags).map(key => (tags[key]._id)),
@@ -166,7 +167,7 @@ const mapDispatchToProps = (dispatch) => {
 }
 
 ContentTable.propTypes = {
-  files: PropTypes.arrayOf(PropTypes.string),
+  files: PropTypes.arrayOf(PropTypes.object),
   tags: PropTypes.arrayOf(PropTypes.string),
   loading: PropTypes.bool.isRequired,
   tagConfirmLoading: PropTypes.bool.isRequired,

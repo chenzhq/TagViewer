@@ -7,16 +7,16 @@ import {Layout, Icon, Popover} from 'antd'
 const {Header, Content} = Layout;
 const {ipcRenderer} = require('electron');
 
-import update from 'immutability-helper';
+// import update from 'immutability-helper';
 
 require('../styles/MainLayout.css');
-import { normalize, schema } from 'normalizr';
+// import { normalize, schema } from 'normalizr';
 
 import MenuSider from './MenuSider_2'
 import ContentTable from './ContentTable'
 import TagPop from './TagPop';
 
-import {collapseMenu, beginLoading, searchPath, initialState, toggleTagPopVisible} from '../actions/actions'
+import {collapseMenu, searchPath, initialState, toggleTagPopVisible} from '../actions/actions'
 
 const PouchDB = require('pouchdb/dist/pouchdb.min');
 PouchDB.plugin(require('pouchdb-find'));
@@ -63,7 +63,7 @@ class MainLayout extends React.Component {
 	}
 
 	render() {
-		const {menuCollapsed, tagPopoverVisible} = this.props;
+		const {menuCollapsed} = this.props;
 		return (
 			<Layout className="layout">
 				<MenuSider
@@ -81,7 +81,6 @@ class MainLayout extends React.Component {
 							content={<TagPop />}
 							trigger="click"
 							placement="bottomLeft"
-							//visible={tagPopoverVisible}
 						>
 							<Icon
 								type="tag-o"
@@ -108,7 +107,7 @@ const mapStateToProps = state => {
 
 }
 
-const mapDispatchToProps = (dispatch, ownProps) => {
+const mapDispatchToProps = (dispatch) => {
 
 	return {
 		dispatch: dispatch,
