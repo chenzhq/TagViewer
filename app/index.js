@@ -3,7 +3,7 @@ import 'babel-polyfill'; // generators
 require('antd/dist/antd.css')
 
 import {render} from 'react-dom';
-import React, {PropTypes} from 'react';
+import React from 'react';
 import {Provider} from 'react-redux'
 
 import MainLayout from './components/MainLayout'

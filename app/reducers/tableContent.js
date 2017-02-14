@@ -46,14 +46,10 @@ const tags = function (state = {}, action) {
 			return action.tags;
 		case SAVE_TAG_SUCCESS:
 			//TODO: 不确定怎么使用对象展开式处理多个值
-			// console.log(state);
 			let _state = {...state};
-			// console.log(_state);
-			// console.log(action.previousTags);
 			action.previousTags.forEach(tagName => {
 				_state = {..._state, [tagName]: {_id: tagName, count: _state[tagName].count-1}}
 			});
-			// console.log(action.subsequentTags);
 			action.subsequentTags.forEach(tagName => {
 				_state = {..._state, [tagName]: {_id: tagName, count: _state[tagName] === undefined ? 1 : _state[tagName].count+1}}
 			});

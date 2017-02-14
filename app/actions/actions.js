@@ -1,12 +1,15 @@
 /**
  * Created by chen on 2017/1/12.
  */
-"use strict";
-import {readDirRecur, recursiveReaddirSync} from '../utils/RecurFile'
+'use strict';
+import path from 'path';
+// import {recursiveReaddirSync} from '../utils/RecurFile'
 import PouchDB from 'pouchdb/dist/pouchdb.min';
 import {XorArray} from '../utils/XORArray';
 // PouchDB.plugin(require('pouchdb-find'));
 import { normalize, schema } from 'normalizr';
+import readFiles from 'node-readfiles';
+import isVideo from '../utils/isVideo';
 
 export const MODIFY_TAGS = 'MODIFY_TAGS';
 export const MENU_COLLAPSE = 'MENU_COLLAPSE';
@@ -22,6 +25,9 @@ export const SAVE_TAG_SUCCESS = 'SAVE_TAG_SUCESS';
 export const INITIAL_TAGS = 'INITIAL_TAGS';
 export const INITIAL_FILES = 'INITIAL_FILES';
 
+export const TAGPOP_VISIBLE = 'TAG_VISIBLE';
+export const CHECK_TAG = 'CHECK_TAG';
+export const CONFIRM_TAG_SEARCH = 'CONFIRM_TAG_SEARCH';
 
 
 export function collapseMenu(isCollapsed) {
@@ -30,6 +36,7 @@ export function collapseMenu(isCollapsed) {
 
 export function initialState() {
 	return dispatch => {
+		dispatch(beginLoading());
 		return Promise.resolve()
 			// .then(dispatch(beginLoading()))
 			.then(dispatch(initialTags()))
@@ -38,9 +45,13 @@ export function initialState() {
 	}
 }
 
+/**
+ * 初始化标签
+ * @return {[type]} [description]
+ */
 function initialTags() {
 	return dispatch => {
-		dispatch(beginLoading());
+		// dispatch(beginLoading());
 
 		let tagDB = new PouchDB('tags');
 
@@ -57,6 +68,11 @@ function initialTags() {
 	}
 }
 
+/**
+ * 加载标签
+ * @param  {[array]} tags []
+ * @return {[type]}      [description]
+ */
 function loadTags(tags) {
 	// console.log(tags)
 	return {type: INITIAL_TAGS, tags: tags === undefined ? {} : tags};
@@ -68,10 +84,12 @@ function initialFiles() {
 
 		return videoDB.find({
 			selector: {
-				times: {'$gt': 0}
+				times: {'$gte': 0}
 			}
 		}).then(res => {
+			console.log(res);
 			let filesSchema = [new schema.Entity('files', {}, {idAttribute: '_id'})];
+			console.log(normalize(res.docs, filesSchema).entities.files);
 			dispatch(loadFiles(normalize(res.docs, filesSchema).entities.files));
 		})
 	}
@@ -95,14 +113,13 @@ export function addFiles(files) {
 const filterDuplicatedFiles = function (files, dispatch) {
 	let videoDB = new PouchDB('videos');
 	videoDB.bulkDocs(files).then(results => {
-		// console.log(files);
+		console.log(files);
 		//The results are returned in the same order as the supplied “docs” array.
 		for (let l = results.length, i = l - 1; i >= 0; --i) {
 			if (results[i].error === true) {
 				files.splice(i, 1);
 			}
 		}
-		console.log(files)
 		let fileScheme = {files: [new schema.Entity('files', {}, {idAttribute: '_id'})]};
 		dispatch(addFiles(normalize({files: files}, fileScheme).entities.files));
 	}).catch((err) => {
@@ -110,28 +127,46 @@ const filterDuplicatedFiles = function (files, dispatch) {
 	});
 };
 
-export function searchPath(path) {
+export function searchPath(_path) {
 	return dispatch => {
-
+		console.log(_path);
 		dispatch(beginLoading());
-
-		/*return readDirRecur(path, function (err, files) {
-			if (err) {
-				console.error(err);
+		// console.log('loading，准备promise');
+		// let _files = recursiveReaddirSync(_path);
+		// return Promise.resolve(_files)
+		// .then(dispatch(beginLoading()))
+		// .then(console.log('after load'))
+		// .then(recursiveReaddirSync.bind(null, path))
+		// .then(console.log('读取完毕，传递files'))
+		// .then(files => {
+		// 	filterDuplicatedFiles(files, dispatch);
+		// })
+		let statList= [];
+		return readFiles(_path,
+			{
+				readContents: false
+			},
+			(err, fileName, content, stat) => {
+			if(err) {console.error(err);}
+			if(stat.size && isVideo(fileName)) {
+				let sizeKB = stat.size/1024;
+				let video = {
+					'_id': path.join(_path, fileName),
+					'name': fileName.slice(fileName.lastIndexOf('\\')+1),
+					'size': sizeKB > 1024 ? (sizeKB/1024).toFixed(2)+' MB' : sizeKB.toFixed(2) + ' KB',
+					'tags': [],
+					'times': 0,
+					'description': '这是测试描述，不要当真'
+				};
+				console.log(video);
+				statList.push(video);
 			}
-			console.log(filterDuplicatedFiles(files));
-			dispatch(addFiles(filterDuplicatedFiles(files)));
-		})*/
-
-		return Promise.resolve(path).then(recursiveReaddirSync)
-			.then(files => {
-				filterDuplicatedFiles(files, dispatch);
-
-				// let _files = filterDuplicatedFiles(files, dispatch);
-				// console.log(_files);
-				// return _files;
-			})
-
+				// next();
+			// }
+		}).then(() => {
+			console.log(statList);
+			filterDuplicatedFiles(statList, dispatch);
+		})
 	}
 }
 
@@ -143,47 +178,6 @@ export function closeTagModal() {
 	return {type: CLOSE_TAGMODAL}
 }
 
-/*const saveTagInDB = function (previousTags, subsequentTags) {
-	let videoDB = new PouchDB('videos');
-	let tagDB = new PouchDB('tags');
-	let _item = getState().data.files[index];
-
-	let saveFileTag = function() { //修改video的tags
-		videoDB.upsert(_item._id, doc => {
-			doc.tags = subsequentTags;
-			return doc;
-		});
-	}
-
-	let savePrevTags = function () { //根据修改前的tag改变count（-1），--如果为0，则删除
-		previousTags.forEach(tag => {
-			tagDB.upsert(tag, doc => {
-				doc.count--;
-				// if(doc.count === 0) {
-				// 	doc._deleted = true;
-				// }
-				return doc;
-			})
-		});
-	}
-
-	let saveSubsTags = function () { //根据修改后的tag改变count（+1），如果没有，则新建
-		subsequentTags.forEach((tag) => {
-			tagDB.upsert(tag, doc => {
-				if (doc === {}) {
-					return {_id: tag, count: 1};
-				}
-				doc.count++;
-				return doc;
-			}).catch(err => reject(err))
-		});
-	};
-
-	return new Promise(function (resolve, reject) {
-
-	});
-
-};*/
 
 export function modifyTags(itemId) {
 
@@ -218,10 +212,6 @@ export function modifyTags(itemId) {
 				doc.tags = subsequentTags;
 				return videoDB.put(doc);
 			});
-			// videoDB.upsert(_item._id, doc => {
-			// 	doc.tags = subsequentTags;
-			// 	return doc;
-			// });
 		};
 
 		//根据对前后标签数组进行异或运算，删除的标签count-1
@@ -235,15 +225,6 @@ export function modifyTags(itemId) {
 						count: doc.count-1
 					})
 				});
-
-				/*tagDB.upsert(tag, doc => {
-					--doc.count;
-					// if(doc.count === 0) {
-					// 	doc._deleted = true;
-					// }
-					console.log('修改后 prev', doc);
-					return doc;
-				})*/
 			});
 		};
 
@@ -268,16 +249,6 @@ export function modifyTags(itemId) {
 					}
 				});
 
-				/*tagDB.upsert(tag, doc => {
-					console.log('upsert ', doc, tag);
-					if (doc === {}) {
-						console.log('新建', tag);
-						return {_id: tag, count: 1};
-					}
-					++doc.count;
-					console.log('修改后 subs ', doc);
-					return doc;
-				}).catch(err => console.error(err))*/
 			});
 		};
 
@@ -301,4 +272,24 @@ export function saveTag() {
 
 export function saveTagSuccess(itemId, previousTags, subsequentTags) {
 	return {type: SAVE_TAG_SUCCESS, itemId, previousTags, subsequentTags}
+}
+
+export function toggleTagPopVisible(isVisible) {
+	return {type: TAGPOP_VISIBLE, isVisible};
+}
+
+export function checkTag(tags) {
+	return {type: CHECK_TAG, tags};
+}
+
+export function confirmTagSearch(tags) {
+	return {type: CONFIRM_TAG_SEARCH, tags}
+}
+
+export function filterByTag(tags) {
+	return dispatch => {
+		dispatch(beginLoading());
+
+		return Promise.resolve().then(() => dispatch(confirmTagSearch(tags)));
+	}
 }
