@@ -2,11 +2,14 @@
  * Created by chen on 2017/1/12.
  */
 'use strict';
-import {recursiveReaddirSync} from '../utils/RecurFile'
+import path from 'path';
+// import {recursiveReaddirSync} from '../utils/RecurFile'
 import PouchDB from 'pouchdb/dist/pouchdb.min';
 import {XorArray} from '../utils/XORArray';
 // PouchDB.plugin(require('pouchdb-find'));
 import { normalize, schema } from 'normalizr';
+import readFiles from 'node-readfiles';
+import {videoExtensions } from '../utils/isVideo';
 
 export const MODIFY_TAGS = 'MODIFY_TAGS';
 export const MENU_COLLAPSE = 'MENU_COLLAPSE';
@@ -42,6 +45,10 @@ export function initialState() {
 	}
 }
 
+/**
+ * 初始化标签
+ * @return {[type]} [description]
+ */
 function initialTags() {
 	return dispatch => {
 		// dispatch(beginLoading());
@@ -61,6 +68,11 @@ function initialTags() {
 	}
 }
 
+/**
+ * 加载标签
+ * @param  {[array]} tags []
+ * @return {[type]}      [description]
+ */
 function loadTags(tags) {
 	// console.log(tags)
 	return {type: INITIAL_TAGS, tags: tags === undefined ? {} : tags};
@@ -115,18 +127,44 @@ const filterDuplicatedFiles = function (files, dispatch) {
 	});
 };
 
-export function searchPath(path) {
+export function searchPath(_path) {
 	return dispatch => {
 
-		// dispatch(beginLoading());
+		dispatch(beginLoading());
+		// console.log('loading，准备promise');
+		// let _files = recursiveReaddirSync(_path);
+		// return Promise.resolve(_files)
+		// .then(dispatch(beginLoading()))
+		// .then(console.log('after load'))
+		// .then(recursiveReaddirSync.bind(null, path))
+		// .then(console.log('读取完毕，传递files'))
+		// .then(files => {
+		// 	filterDuplicatedFiles(files, dispatch);
+		// })
+		let statList= [];
+		return readFiles(_path,
+			{
+				filter: videoExtensions,
+				readContents: false
+			},
+			(err, content, fileName, stat) => {
+			if(err) {console.error(err);}
 
-		return Promise.resolve()
-		.then(dispatch(beginLoading()))
-		.then(recursiveReaddirSync.bind(null, path))
-		.then(files => {
-			filterDuplicatedFiles(files, dispatch);
+			let sizeKB = stat.size/1024;
+			let video = {
+				'_id': path.join(_path, fileName),
+				'name': fileName,
+				'size': sizeKB > 1024 ? (sizeKB/1024).toFixed(2)+' MB' : sizeKB.toFixed(2) + ' KB',
+				'tags': [],
+				'times': 0,
+				'description': ''
+			};
+			console.log(video);
+			statList.push(video);
+		}).then(() => {
+			console.log(statList);
+			filterDuplicatedFiles(statList, dispatch);
 		})
-
 	}
 }
 

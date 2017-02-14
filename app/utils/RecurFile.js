@@ -67,6 +67,7 @@ export function readdirRecur(_path, callback) {
 }
 
 export function recursiveReaddirSync(_path) {
+	console.log('begin read');
 	let list = []
 		, files = readdirSync(_path)
 		, stats
@@ -81,12 +82,13 @@ export function recursiveReaddirSync(_path) {
 			let video = {
 				'_id': path.join(_path, file),
 				'name': file,
-				'size': sizeKB > 1024 ? (sizeKB/1024).toFixed(2)+' MB' : sizeKB + ' KB',
+				'size': sizeKB > 1024 ? (sizeKB/1024).toFixed(2)+' MB' : sizeKB.toFixed(2) + ' KB',
 				'tags': [],
 				'times': 0
 			};
 			list.push(video);
 		}
 	});
+	console.log('end read');
 	return list;
 }
