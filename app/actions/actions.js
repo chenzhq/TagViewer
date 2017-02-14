@@ -144,6 +144,7 @@ export function searchPath(_path) {
 		let statList= [];
 		return readFiles(_path,
 			{
+				// filenameFormat: readFiles.FULL_PATH,
 				readContents: false
 			},
 			(err, fileName, content, stat) => {
@@ -152,7 +153,7 @@ export function searchPath(_path) {
 				let sizeKB = stat.size/1024;
 				let video = {
 					'_id': path.join(_path, fileName),
-					'name': fileName.slice(fileName.lastIndexOf('\\')+1),
+					'name':path.basename(fileName),
 					'size': sizeKB > 1024 ? (sizeKB/1024).toFixed(2)+' MB' : sizeKB.toFixed(2) + ' KB',
 					'tags': [],
 					'times': 0,
