@@ -9,7 +9,7 @@ import {XorArray} from '../utils/XORArray';
 // PouchDB.plugin(require('pouchdb-find'));
 import { normalize, schema } from 'normalizr';
 import readFiles from 'node-readfiles';
-import {videoExtensions } from '../utils/isVideo';
+import isVideo from '../utils/isVideo';
 
 export const MODIFY_TAGS = 'MODIFY_TAGS';
 export const MENU_COLLAPSE = 'MENU_COLLAPSE';
@@ -113,7 +113,7 @@ export function addFiles(files) {
 const filterDuplicatedFiles = function (files, dispatch) {
 	let videoDB = new PouchDB('videos');
 	videoDB.bulkDocs(files).then(results => {
-		// console.log(files);
+		console.log(files);
 		//The results are returned in the same order as the supplied “docs” array.
 		for (let l = results.length, i = l - 1; i >= 0; --i) {
 			if (results[i].error === true) {
@@ -129,7 +129,7 @@ const filterDuplicatedFiles = function (files, dispatch) {
 
 export function searchPath(_path) {
 	return dispatch => {
-
+		console.log(_path);
 		dispatch(beginLoading());
 		// console.log('loading，准备promise');
 		// let _files = recursiveReaddirSync(_path);
@@ -144,23 +144,25 @@ export function searchPath(_path) {
 		let statList= [];
 		return readFiles(_path,
 			{
-				filter: videoExtensions,
 				readContents: false
 			},
-			(err, content, fileName, stat) => {
+			(err, fileName, content, stat) => {
 			if(err) {console.error(err);}
-
-			let sizeKB = stat.size/1024;
-			let video = {
-				'_id': path.join(_path, fileName),
-				'name': fileName,
-				'size': sizeKB > 1024 ? (sizeKB/1024).toFixed(2)+' MB' : sizeKB.toFixed(2) + ' KB',
-				'tags': [],
-				'times': 0,
-				'description': ''
-			};
-			console.log(video);
-			statList.push(video);
+			if(stat.size && isVideo(fileName)) {
+				let sizeKB = stat.size/1024;
+				let video = {
+					'_id': path.join(_path, fileName),
+					'name': fileName.slice(fileName.lastIndexOf('\\')+1),
+					'size': sizeKB > 1024 ? (sizeKB/1024).toFixed(2)+' MB' : sizeKB.toFixed(2) + ' KB',
+					'tags': [],
+					'times': 0,
+					'description': '这是测试描述，不要当真'
+				};
+				console.log(video);
+				statList.push(video);
+			}
+				// next();
+			// }
 		}).then(() => {
 			console.log(statList);
 			filterDuplicatedFiles(statList, dispatch);
