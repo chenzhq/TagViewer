@@ -1,8 +1,10 @@
 /**
  * Created by chen on 2017/01/06.
  */
-const {readdir, stat, readdirSync, lstatSync} = require("fs");
-const path = require("path");
+const {readdir, stat, readdirSync, lstatSync} = require('fs');
+const path = require('path');
+
+import isVideo from './isVideo';
 
 export function readdirRecur(_path, callback) {
 	'use strict';
@@ -40,13 +42,16 @@ export function readdirRecur(_path, callback) {
 							return callback(null, list);
 						}
 					});
-				} else {
+				} else if(isVideo(file)){
+					console.log(file)
+					let sizeKB = stats.size/1024;
 					let video = {
-						"_id": filePath,
-						"name": file,
-						"size": (stats.size/1024/1024).toFixed(2)+' MB',
-						"tags": [],
-						"times": 1
+						'_id': filePath,
+						'name': file,
+						'size': sizeKB > 1024 ? (sizeKB*1024).toFixed(2)+' MB' : sizeKB + ' KB',
+						'tags': [],
+						'times': 0,
+						'description': ''
 					};
 					list.push(video);
 					pending -= 1;
@@ -62,6 +67,7 @@ export function readdirRecur(_path, callback) {
 }
 
 export function recursiveReaddirSync(_path) {
+	console.log('begin read');
 	let list = []
 		, files = readdirSync(_path)
 		, stats
@@ -71,17 +77,18 @@ export function recursiveReaddirSync(_path) {
 		stats = lstatSync(path.join(_path, file));
 		if(stats.isDirectory()) {
 			list = list.concat(recursiveReaddirSync(path.join(_path, file)));
-		} else {
+		} else if(isVideo(file)){
+			let sizeKB = stats.size/1024;
 			let video = {
-				"_id": path.join(_path, file),
-				"name": file,
-				"size": (stats.size/1024/1024).toFixed(2)+' MB',
-				"tags": [],
-				"times": 0
+				'_id': path.join(_path, file),
+				'name': file,
+				'size': sizeKB > 1024 ? (sizeKB/1024).toFixed(2)+' MB' : sizeKB.toFixed(2) + ' KB',
+				'tags': [],
+				'times': 0
 			};
 			list.push(video);
 		}
 	});
+	console.log('end read');
 	return list;
 }
-

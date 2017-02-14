@@ -9,7 +9,6 @@ const changeTag = function (state = [], action) {
 		case OPEN_TAGMODAL:
 			return action.item.tags;
 		case CHANGE_TAG:
-			// console.log('change tag ', action.value);
 			return action.value;
 		case SAVE_TAG_SUCCESS:
 			return [];
